@@ -1,0 +1,30 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Helpers.Models;
+
+@model RedactorView
+
+<div class="container">
+
+    @if (Model != null)
+    {
+        @Html.Partial(Model.View, Model)
+    }
+
+    <div class="row">
+
+        <div class="pull-right">
+
+            @using (Html.BeginForm("Delete", "Constructor", FormMethod.Get))
+            {
+                <input type="hidden" value="@Model.Question.Id" name="id" />
+                <input type="submit" class="btn btn-warning" value="Delete" />
+            }
+
+        </div>
+
+    </div>
+
+</div>
+

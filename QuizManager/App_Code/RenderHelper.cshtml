@@ -1,0 +1,63 @@
+﻿
+@helper PlusButton(string url)
+{
+    <a href="@url" type="button" class="btn btn-default btn-circle btn-xl">
+
+        <i class="fa fa-plus fa-2x"></i>
+
+    </a>
+}
+
+@helper AddOptionButton(string _class)
+{
+    <a href="#" type="button" class="@_class btn btn-default btn-circle btn-xl">
+
+        <i class="fa fa-plus fa-2x"></i>
+
+    </a>
+}
+
+@helper RemoveOptionButton(string _class)
+{
+    <a href="#" type="button" class="@_class btn btn-default btn-circle btn-xl">
+
+        <i class="fa fa-close fa-2x"></i>
+
+    </a>
+}
+
+@helper VerticalTabs(IEnumerable<KeyValuePair<string, string>> name_link, string selected)
+{
+    <ul class="nav nav-pills nav-stacked">
+
+        @foreach (var item in name_link)
+        {
+            if (selected == item.Key)
+            {
+                <li class="active"><a href="@item.Value">@item.Key</a></li>
+            }
+            else
+            {
+                <li><a href="@item.Value">@item.Key</a></li>
+            }
+        }
+
+    </ul>
+}
+
+@helper Back(string url)
+{
+    <a href="@url" type="button" class="btn btn-default">
+
+        <i class="fa fa-arrow-left fa-2x"></i>
+
+    </a>
+}
+
+@helper GroupSubmits(IEnumerable<int> orderNumbers)
+{
+    foreach (var item in orderNumbers)
+    {
+        <input name="value" type="submit" value="@item" class="btn btn-default btn-squared-small" />
+    }
+}

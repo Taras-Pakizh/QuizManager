@@ -1,0 +1,26 @@
+﻿@using QuizManager.ModelViews;
+@model TableView
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            @foreach(var item in Model.HeaderNames)
+            {
+                <th>@item</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var row in Model.data)
+        {
+            <tr>
+                @foreach (var property in Model.PropertyNames)
+                {
+                    <td>
+                        @row.GetType().GetProperty(property).GetValue(row)
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

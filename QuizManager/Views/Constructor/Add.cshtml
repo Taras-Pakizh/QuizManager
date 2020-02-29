@@ -1,0 +1,31 @@
+﻿@using QuizManager.ModelViews;
+@{
+    ViewBag.Title = "Add";
+}
+@model QuizView
+
+<h2>Add</h2>
+
+<div class="container">
+
+    @using (Html.BeginForm("Add", "Constructor", FormMethod.Post))
+    {
+        @Html.LabelFor(x=>x.Name)
+        @Html.TextBoxFor(x => x.Name)
+
+        @Html.LabelFor(x=>x.Type)
+        @Html.EnumDropDownListFor(x=>x.Type)
+
+        @Html.LabelFor(x=>x.UserData)
+        @Html.EnumDropDownListFor(x=>x.UserData)
+
+        @Html.LabelFor(x=>x.QuestionCount)
+        @Html.TextBoxFor(x=>x.QuestionCount, new {type="number"})
+
+        @Html.LabelFor(x=>x.TimeLimit)
+        @Html.TextBoxFor(x=>x.TimeLimit, new { type = "time"})
+
+        <input type="submit" class="btn btn-success" value="Add" />
+    }
+
+</div>

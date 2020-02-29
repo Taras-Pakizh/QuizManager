@@ -1,0 +1,17 @@
+﻿@model string
+@{
+    var tabs = new Dictionary<string, string>()
+    {
+        {"My Quizs", Url.Action("Index", "Cabinet")},
+        {"My Groups", Url.Action("MyGroups", "Group")},
+        {"Opened for me", Url.Action("Opened", "Group")},
+        {"Attemps", "#"}
+    };
+}
+
+<div class="container col-sm-4">
+
+    @RenderHelper.VerticalTabs(tabs, Model)
+
+</div>
+

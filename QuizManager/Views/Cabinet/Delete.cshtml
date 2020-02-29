@@ -1,0 +1,48 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model Quiz
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Delete</h2>
+
+<div class="container">
+
+    <h4>Quiz:</h4>
+
+    <div class="container">
+
+        @Html.Partial("TableByProperty", new TableView()
+        {
+            data = new List<Quiz>() { Model },
+            PropertyNames = new List<string>()
+            {
+                "Name", "Type", "TimeLimit", "QuestionCount"
+            },
+            HeaderNames = new List<string>()
+            {
+                "Name", "Type", "Time limit", "Question count"
+            }
+        })
+
+    </div>
+
+    <div class="container">
+
+        @using (Html.BeginForm("Delete", "Cabinet", FormMethod.Post))
+        {
+            <input type="hidden" value="@Model.Id" name="id" />
+            <input type="submit" class="btn btn-danger" value="Delete" />
+        }
+
+    </div>
+
+    <div class="container">
+
+        @RenderHelper.Back(Url.Action("Index", "Cabinet"))
+
+    </div>
+
+</div>

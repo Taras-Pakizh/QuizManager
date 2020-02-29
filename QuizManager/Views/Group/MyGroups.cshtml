@@ -1,0 +1,42 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model IEnumerable<Group>
+@{
+    string SelectedTab = "My Groups";
+}
+
+<div class="container">
+
+    <h2>MyGroups</h2>
+
+    <div class="row">
+
+        @Html.Partial("CabinetPage", SelectedTab)
+
+        <div class="container col-sm-8">
+
+            <ul class="list-inline">
+
+                @foreach (var group in Model)
+                {
+                    <li style="margin:10px;">
+
+                        @Html.CreateSquere(group.Name, group.Id, (IEnumerable<SquereData>)ViewBag.QuizData)
+
+                    </li>
+                }
+
+            </ul>
+
+            <div class="pull-right">
+
+                @RenderHelper.PlusButton(Url.Action("CreateGroup", "Group"))
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

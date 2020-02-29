@@ -1,0 +1,67 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+
+@model Quiz
+@{
+    ViewBag.Title = "Open";
+}
+
+<h2>Open</h2>
+
+Header
+
+<div class="container">
+
+    <div class="row">
+
+        <div class="pull-left">
+
+            <h4>@Model.Name</h4>
+
+        </div>
+
+        <div class="pull-right">
+
+            @using (Html.BeginForm("Edit", "Constructor", FormMethod.Get))
+            {
+                <input type="hidden" value="@Model.Id" name="id" />
+                <input type="submit" class="btn btn-warning" value="Edit" />
+            }
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        @using (Ajax.BeginForm("Question", new AjaxOptions() { UpdateTargetId = "redactor" }))
+        {
+            <input type="hidden" name="id" value="@Model.Id"/>
+
+            @RenderHelper.GroupSubmits(ViewBag.QuestionOrders)
+        }
+
+        <div class="pull-right">
+
+            @using (Ajax.BeginForm("AddQuestion", new AjaxOptions() { UpdateTargetId = "redactor" }))
+            {
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <input type="submit" class="btn btn-success" value="Add" />
+            }
+
+        </div>
+
+    </div>
+
+
+</div>
+
+Redactor
+
+<div id="redactor">
+
+
+
+</div>

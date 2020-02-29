@@ -1,0 +1,43 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model IEnumerable<Quiz>
+@{
+    string SelectedTab = "My Quizs";
+}
+
+<div class="container">
+
+    <h2>Cabinet</h2>
+
+    <div class="row">
+
+        @Html.Partial("CabinetPage", SelectedTab)
+
+        <div class="container col-sm-8">
+
+            <ul class="list-inline">
+
+                @foreach (var quiz in Model)
+                {
+                    <li style="margin:10px;">
+
+                        @Html.CreateSquere(quiz.Name, quiz.Id, (IEnumerable<SquereData>)ViewBag.QuizData)
+
+                    </li>
+                }
+
+            </ul>
+
+            <div class="pull-right">
+
+                @RenderHelper.PlusButton(Url.Action("Add", "Constructor"))
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+

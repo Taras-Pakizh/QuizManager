@@ -1,0 +1,42 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+
+@model RedactorContainerView
+
+<div class="container">
+
+    <div class="row">
+
+        <div class="pull-right form-inline">
+
+            @using (Ajax.BeginForm("Change", new AjaxOptions() { UpdateTargetId = "inner" }))
+            {
+                <input type="hidden" name="QuizId" value="@Model.Quiz.Id" />
+
+                <input type="hidden" name="QuestionId" value="@Model.Question.Id" />
+
+                @Html.EnumDropDownListFor(x=>x.Question.Type, new { name="Type"})
+
+                @Html.EnumDropDownListFor(x => x.Question.Obligation, new { name="Obligation"})
+
+                @Html.TextBoxFor(x => x.Question.OrderNumber, new { type = "number", name="Order" })
+                
+                <input type="submit" class="btn btn-default" value="Select" />
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="inner">
+
+    @if(Model.Question.XmlValue != null)
+    {
+        <p>render if xml is initialized</p>
+    }
+
+</div>
+
