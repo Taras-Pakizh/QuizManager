@@ -8,6 +8,7 @@ namespace QuizManager.ModelViews
 {
     public class QuizView
     {
+        public int Id { get; set; }
         public string Name { get; set; }
 
         public QuizType Type { get; set; }

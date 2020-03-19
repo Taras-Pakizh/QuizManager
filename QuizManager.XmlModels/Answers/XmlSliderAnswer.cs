@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels.Answers
 {
     [Serializable]
-    public class XmlSliderAnswer:XmlAnswer<int>
+    public class XmlSliderAnswer:XmlAnswer<double>
     {
 
     }

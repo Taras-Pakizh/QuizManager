@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace QuizManager.XmlModels
 {
-    public interface IXmlTask<T>
+    public interface IXmlTask
     {
-        object Compare(XmlAnswer<T> answer);
+        double Compare(XmlBase answer, double Value);
     }
 }

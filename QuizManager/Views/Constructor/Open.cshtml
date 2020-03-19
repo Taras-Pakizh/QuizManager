@@ -7,15 +7,19 @@
     ViewBag.Title = "Open";
 }
 
-<h2>Open</h2>
+<div class="text-center">
 
-Header
+    <h2>Constructor</h2>
+
+</div>
 
 <div class="container">
 
-    <div class="row">
+    <div class="row well">
 
-        <div class="pull-left">
+        <div class="pull-left form-inline">
+
+            <label for="Name">Quiz:</label>
 
             <h4>@Model.Name</h4>
 
@@ -33,14 +37,18 @@ Header
 
     </div>
 
-    <div class="row">
+    <div class="row well">
 
-        @using (Ajax.BeginForm("Question", new AjaxOptions() { UpdateTargetId = "redactor" }))
-        {
-            <input type="hidden" name="id" value="@Model.Id"/>
+        <div class="pull-left">
 
-            @RenderHelper.GroupSubmits(ViewBag.QuestionOrders)
-        }
+            @using (Ajax.BeginForm("Question", new AjaxOptions() { UpdateTargetId = "redactor" }))
+            {
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                @RenderHelper.GroupSubmits(ViewBag.QuestionOrders)
+            }
+
+        </div>
 
         <div class="pull-right">
 
@@ -48,20 +56,15 @@ Header
             {
                 <input type="hidden" name="id" value="@Model.Id" />
 
-                <input type="submit" class="btn btn-success" value="Add" />
+                <input type="submit" class="btn btn-success addquestion" value="Add" />
             }
 
         </div>
 
     </div>
 
-
 </div>
 
-Redactor
-
 <div id="redactor">
-
-
 
 </div>

@@ -1,6 +1,8 @@
 ﻿@using QuizManager.Helpers;
 @using QuizManager.DBModels;
 @using QuizManager.ModelViews;
+@using QuizManager.Helpers.Models;
+@using QuizManager.XmlModels;
 
 @model RedactorContainerView
 
@@ -12,21 +14,40 @@
 
             @using (Ajax.BeginForm("Change", new AjaxOptions() { UpdateTargetId = "inner" }))
             {
-                <input type="hidden" name="QuizId" value="@Model.Quiz.Id" />
+                @Html.HiddenFor(x => x.Quiz.Id)
 
-                <input type="hidden" name="QuestionId" value="@Model.Question.Id" />
+                @Html.HiddenFor(x => x.Question.Id)
 
-                @Html.EnumDropDownListFor(x=>x.Question.Type, new { name="Type"})
+                <div class="form-group">
+                    @Html.EnumDropDownListFor(x => x.Question.Type, new { @class = "form-control" })
+                </div>
 
-                @Html.EnumDropDownListFor(x => x.Question.Obligation, new { name="Obligation"})
+                <div class="form-group">
+                    @Html.EnumDropDownListFor(x => x.Question.Obligation, new { @class = "form-control" })
+                </div>
 
-                @Html.TextBoxFor(x => x.Question.OrderNumber, new { type = "number", name="Order" })
-                
-                <input type="submit" class="btn btn-default" value="Select" />
+                <div class="form-group">
+                    @Html.LabelFor(x => x.Question.OrderNumber, "Order:")
+                    @Html.TextBoxFor(x => x.Question.OrderNumber, new { type = "number", @class = "form-control", min = "1" })
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-default" value="Select" />
+                </div>
             }
 
         </div>
 
+    </div>
+
+    <br/>
+
+    <div class="row form-group pull-right">
+        @using (Html.BeginForm("Delete", "Constructor", FormMethod.Get))
+        {
+            <input type="hidden" value="@Model.Question.Id" name="id" />
+            <input type="submit" class="btn btn-danger" value="Delete" />
+        }
     </div>
 
 </div>
@@ -34,8 +55,16 @@
 <div id="inner">
 
     @if(Model.Question.XmlValue != null)
-    {
-        <p>render if xml is initialized</p>
+    { 
+        var model = RedactorView.GetView((QuestionType)Model.Question.Type, Model.Quiz.Type);
+
+        model.Question = Model.Question;
+
+        model.Quiz = Model.Quiz;
+
+        model.Model = XmlBase.Deserialize(Model.Question.XmlObject, Model.Question.TypeName);
+
+        @Html.Partial("Redactor", model)
     }
 
 </div>

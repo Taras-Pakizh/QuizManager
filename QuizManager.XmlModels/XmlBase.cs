@@ -36,5 +36,10 @@ namespace QuizManager.XmlModels
 
             return (XmlBase)xmlSerializer.Deserialize(element.CreateReader());
         }
+
+        public static Type GetType(string typeName)
+        {
+            return Type.GetType("QuizManager.XmlModels." + typeName);
+        }
     }
 }

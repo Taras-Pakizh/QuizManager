@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Text.Json;
+using QuizManager.XmlModels;
+using QuizManager.XmlModels.Answers;
+
 
 namespace QuizManager.Controllers
 {
@@ -46,7 +50,7 @@ namespace QuizManager.Controllers
             return View(model);
         }
 
-        [HttpGet, ActionName("Question")]
+        [HttpPost, ActionName("Question")]
         public ActionResult QRedactor_Ajax(string value, int? id)
         {
             if(id == null)
@@ -54,11 +58,11 @@ namespace QuizManager.Controllers
                 return HttpNotFound();
             }
 
-            //---------finding question id by order number-----
+            //---------finding question by order number-----
 
             var questionNumber = Int32.Parse(value);
 
-            var questionId = cx.Questions.
+            var question = cx.Questions.
                     Where(x => x.Quiz.Id == id).
                     Single(y => y.OrderNumber == questionNumber);
 
@@ -66,7 +70,7 @@ namespace QuizManager.Controllers
 
             var model = new RedactorContainerView()
             {
-                Question = cx.Questions.Find(questionId),
+                Question = question
             };
 
             model.Quiz = model.Question.Quiz;
@@ -114,32 +118,63 @@ namespace QuizManager.Controllers
 
 
         /// <summary>
-        /// NotImlemented = create new view
+        /// Edit quiz info
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
         public ActionResult Edit(int? id)
         {
-            return View();
+            var quiz = cx.Quizzes.Find(id);
+
+            if (quiz == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new QuizView()
+            {
+                Id = quiz.Id,
+                Name = quiz.Name,
+                QuestionCount = quiz.QuestionCount,
+                TimeLimit = quiz.TimeLimit,
+                Type = quiz.Type,
+                UserData = quiz.UserData
+            };
+
+            return View(model);
         }
         [HttpPost, ActionName("Edit")]
         public ActionResult EditPost(QuizView view)
         {
-            return View();
-            //return RedirectToAction("Open", new { id =  });
+            var quiz = cx.Quizzes.Find(view.Id);
+
+            quiz.Name = view.Name;
+            quiz.QuestionCount = view.QuestionCount;
+            quiz.TimeLimit = view.TimeLimit;
+            quiz.Type = view.Type;
+            quiz.UserData = view.UserData;
+
+            cx.SaveChanges();
+
+            return RedirectToAction("Open", new { id = view.Id });
         }
 
 
         /// <summary>
         /// Shows only COMBOBOX to choose type (which is create inner redactor)
         /// </summary>
-        [HttpGet]
+        [HttpPost]
         public ActionResult AddQuestion(int? id)
         {
-            var maxOrder = cx.Questions.
-                Where(x => x.Quiz.Id == id).
-                Max(x => x.OrderNumber);
+            int maxOrder = 0;
+
+            if(cx.Questions.Where(x => x.Quiz.Id == id).Count() != 0)
+            {
+                maxOrder = cx.Questions.
+                    Where(x => x.Quiz.Id == id).
+                    Max(x => x.OrderNumber);
+            }
 
             var newQuestion = new Question()
             {
@@ -166,19 +201,26 @@ namespace QuizManager.Controllers
         /// Create real redactor (using RedactorHelper)
         /// </summary>
         [HttpPost, ActionName("Change")]
-        public ActionResult ChangeQuestion(QuestionView view)
+        public ActionResult ChangeQuestion(RedactorContainerView view)
         {
-            var question = cx.Questions.Find(view.QuestionId);
+            var question = cx.Questions.Find(view.Question.Id);
 
-            question.Obligation = view.Obligation;
+            question.Obligation = view.Question.Obligation;
 
-            if(view.Order != question.OrderNumber)
+            if(view.Question.OrderNumber != question.OrderNumber)
             {
-                var questions = cx.Questions.Where(x => x.Quiz.Id == view.QuizId).OrderBy(y=>y.OrderNumber).ToList();
+                var questions = cx.Questions.
+                    Where(x => x.Quiz.Id == view.Quiz.Id).
+                    OrderBy(y=>y.OrderNumber).ToList();
+
+                if (view.Question.OrderNumber > questions.Count)
+                {
+                    view.Question.OrderNumber = questions.Count;
+                }
 
                 questions.RemoveAt(question.OrderNumber - 1);
 
-                questions.Insert(view.Order - 1, question);
+                questions.Insert(view.Question.OrderNumber - 1, question);
 
                 int index = 1;
 
@@ -190,22 +232,27 @@ namespace QuizManager.Controllers
                 }
             }
 
-            question.Type = view.Type;
+            question.Type = view.Question.Type;
 
             cx.SaveChanges();
 
             RedactorView model = null;
 
-            if(view.Type != null)
+            if(view.Question.Type != null)
             {
                 model = RedactorView.GetView(
-                    (QuestionType)view.Type, 
-                    cx.Quizzes.Find(view.QuizId).Type
+                    (QuestionType)view.Question.Type, 
+                    cx.Quizzes.Find(view.Quiz.Id).Type
                 );
 
                 model.Question = question;
 
-                model.Quiz = cx.Quizzes.Find(view.QuizId);
+                model.Quiz = cx.Quizzes.Find(view.Quiz.Id);
+
+                if(question.XmlValue != null)
+                {
+                    model.Model = XmlBase.Deserialize(question.XmlObject, question.TypeName);
+                }
             }
 
             return PartialView("Redactor", model);
@@ -213,22 +260,114 @@ namespace QuizManager.Controllers
 
 
 
-
-
-        [HttpPost, ActionName("Save")]
-        public ActionResult SaveQuestion(RedactorView view)
+        /// <summary>
+        /// A new action for every quiz type
+        /// </summary>
+        [HttpPost]
+        public ActionResult SaveXmlListPoll(PollListRedactorView view)
         {
-            //var g = new HashSet<int>();
+            var question = cx.Questions.Find(view.Question.Id);
 
-            //var j = g.ElementAt(1);
+            if(question == null)
+            {
+                return HttpNotFound();
+            }
 
-            //Redirect
-            return View();
+            question.Text = view.Question.Text;
+
+            question.Value = view.Question.Value;
+
+            question.TypeName = view._XmlModel.GetType().Name;
+
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                return PartialView("Redactor", view);
+            }
+
+            question.XmlObject = XmlBase.Serialize<XmlPollList>(view._XmlModel);
+
+            cx.SaveChanges();
+
+            ViewBag.IsSaved = true;
+
+            view.Question = question;
+
+            return PartialView("Redactor", view);
         }
+
+        [HttpPost]
+        public ActionResult SaveXmlListTest(TestListRedactorView view)
+        {
+            if (view.Ids != null)
+            {
+                foreach (var id in view.Ids)
+                {
+                    view._XmlModel.Options.Single(x => x.Id == id).IsTrue = true;
+                }
+            }
+            
+            var question = cx.Questions.Find(view.Question.Id);
+
+            if (question == null)
+            {
+                return HttpNotFound();
+            }
+
+            question.Text = view.Question.Text;
+
+            question.Value = view.Question.Value;
+
+            question.TypeName = view._XmlModel.GetType().Name;
+
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                view.Question = cx.Questions.Find(view.Question.Id);
+
+                return PartialView("Redactor", view);
+            }
+
+            question.XmlObject = XmlBase.Serialize(view._XmlModel);
+
+            cx.SaveChanges();
+
+            ViewBag.IsSaved = true;
+
+            view.Question = question;
+            view.Quiz = question.Quiz;
+
+            return PartialView("Redactor", view);
+        }
+
         [HttpGet, ActionName("Delete")]
         public ActionResult DeleteQuestion(int? id)
         {
-            return View();
+            var model = cx.Questions.Find(id);
+
+            var quizId = model.Quiz.Id;
+
+            if(model == null)
+            {
+                return HttpNotFound();
+            }
+
+            var questions = cx.Questions.
+                Where(x => x.Quiz.Id == model.Quiz.Id).
+                OrderBy(y => y.OrderNumber).ToList();
+
+            for(int i = model.OrderNumber; i < questions.Count; ++i)
+            {
+                questions[i].OrderNumber--;
+            }
+
+            cx.Questions.Remove(model);
+
+            cx.SaveChanges();
+
+            return RedirectToAction("Open", new { id = quizId });
         }
     }
 }

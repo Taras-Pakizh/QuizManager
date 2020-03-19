@@ -1,0 +1,118 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Helpers.Models;
+@using QuizManager.XmlModels;
+
+@model TestListRedactorView
+
+@{
+    XmlQuestionType? type = null;
+    switch (Model.Question.Type)
+    {
+        case QuestionType.Radio:
+            type = XmlQuestionType.Radio;
+            break;
+        case QuestionType.Checkbox:
+            type = XmlQuestionType.Checkbox;
+            break;
+        case QuestionType.ComboBox:
+            type = XmlQuestionType.ComboBox;
+            break;
+    }
+}
+
+<div class="container">
+
+    <div>
+
+        @using (Ajax.BeginForm("SaveXmlListTest", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
+        {
+
+            @Html.HiddenFor(x => x.Question.Id)
+            @Html.HiddenFor(x => x.Quiz.Id)
+            <input type="hidden" name="_XmlModel.ListType" value="@type" />
+
+            <div class="form-inline">
+
+                @Html.LabelFor(x => x.Question.Text, "Question:")
+
+                @Html.TextBoxFor(x => x.Question.Text, new { @class = "form-control" })
+
+                @Html.TextBoxFor(x=>x.Question.Value, new { @class = "form-control", type="number", min="1"})
+
+                @RenderHelper.AddOptionButton("addLink")
+
+            </div>
+
+            <br />
+
+            <div id="options" class="container form-group">
+
+                @if (Model._XmlModel != null)
+                {
+                    for (int i = 0; i < Model._XmlModel.Options.Count(); ++i)
+                    {
+                        <div class="form-group form-inline removeContainer container">
+
+                            @Html.HiddenFor(x => x._XmlModel.Options[i].Id)
+
+                            @Html.TextBoxFor(x => x._XmlModel.Options[i].Text, new { @class = "form-control" })
+
+                            @if (type == XmlQuestionType.Radio || type == XmlQuestionType.ComboBox)
+                            {
+                                <div class="radio">
+                                    @Html.RadioButton("Ids", Model._XmlModel.Options[i].Id, Model._XmlModel.Options[i].IsTrue)
+                                </div>
+                            }
+                            else if (type == XmlQuestionType.Checkbox)
+                            {
+                                <div class="checkbox">
+                                    @RenderHelper.CheckBoxSimple("Ids", Model._XmlModel.Options[i].IsTrue, Model._XmlModel.Options[i].Id.ToString())
+                                </div>
+                            }
+
+                            @RenderHelper.RemoveOptionButton("removeLink")
+
+                        </div>
+                    }
+                 }
+
+            </div>
+
+            <div class="form-group pull-right">
+                <input type="submit" class="btn btn-success" value="Save" />
+            </div>
+        }
+
+    </div>
+
+    <div class="hidden">
+
+        <div id="option" class="removeContainer form-group form-inline container">
+
+            <input type="hidden" />
+
+            <input type="text" class="form-control" />
+
+            @if (type == XmlQuestionType.ComboBox || type == XmlQuestionType.Radio)
+            {
+                <div class="radio">
+                    <input type="radio" name="Ids" />
+                </div>
+            }
+            else if (type == XmlQuestionType.Checkbox)
+            {
+                <div class="checkbox">
+                    <input type="checkbox" name="Ids" />
+                </div>
+            }
+
+            @RenderHelper.RemoveOptionButton("removeLink")
+
+        </div>
+
+    </div>
+
+</div>
+

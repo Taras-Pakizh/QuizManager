@@ -8,13 +8,8 @@ using QuizManager.XmlModels.Answers;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlPollList : XmlList<XmlOption>
+    public class XmlPollList : XmlList<XmlPollOption>
     {
-        public override bool Create(IEnumerable<XmlOption> options, XmlQuestionType listType)
-        {
-            ListType = listType;
-
-            return _Initialize(options);
-        }
+        
     }
 }

@@ -8,18 +8,20 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlText : XmlBase, IXmlTask<string>, IAnswerName
+    public class XmlText : XmlBase, IXmlTask, IAnswerName
     {
         public string Text { get; set; }
 
-        public object Compare(XmlAnswer<string> answer)
+        public double Compare(XmlBase answer, double Value)
         {
-            if(Text == answer.Answer)
+            var _answer = answer as XmlTextAnswer;
+
+            if (Text == _answer.Answer)
             {
-                return true;
+                return Value;
             }
 
-            return false;
+            return 0;
         }
 
         public string GetTypeName()

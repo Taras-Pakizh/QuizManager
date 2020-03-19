@@ -3,69 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QuizManager.XmlModels.Answers;
 
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlTestMatching : XmlMatching, IXmlTask<int[]>, IXmlTask<int[][]>
+    public class XmlTestMatching : XmlMatching<XmlTestList>, IXmlTask
     {
-        public object Compare(XmlAnswer<int[]> answer)
+        public double Compare(XmlBase answer, double Value)
         {
-            throw new NotImplementedException();
-        }
-
-        public object Compare(XmlAnswer<int[][]> answer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Create(IEnumerable<string> questions, IEnumerable<string> options, bool[][] answers, XmlQuestionType type)
-        {
-            MatchingType = type;
-
-            var result = _Initialize(questions, options);
-
-            if (!result)
+            if (MatchingType == null)
             {
-                return false;
+                throw new Exception("Matching isn't initialized");
             }
 
-            if(answers.Length != Questions.Count || answers[0].Length != Options.Count)
+            if (MatchingType == XmlQuestionType.Checkbox)
             {
-                ErrorList.Add("Index out of range");
+                var converted = answer as XmlMatchingMultyAnswer;
 
-                return false;
-            }
+                double sum = 0;
 
-            foreach(var row in answers)
-            {
-                var count = row.Count(x => x);
-
-                if(count == 0)
+                foreach(var item in converted.Answers.Zip
+                    (Questions, (_answer, question) => new
                 {
-                    ErrorList.Add("All Questions must have answer");
-
-                    return false;
+                    Answer = _answer,
+                    Question = question
+                }))
+                {
+                    sum += item.Question.Compare(item.Answer, Value / Questions.Count);
                 }
 
-                switch (type)
-                {
-                    case XmlQuestionType.ComboBox:
-                        break;
-                    default:
-                        if(count != 1)
-                        {
-                            ErrorList.Add("Questions must have only one answer");
-
-                            return false;
-                        }
-                        break;
-                }
+                return sum;
             }
+            else
+            {
+                var converted = answer as XmlMatchingSingleAnswer;
 
-            Answers = answers;
+                double sum = 0;
 
-            return true;
+                foreach (var item in converted.Answers.Zip
+                    (Questions, (_answer, question) => new
+                    {
+                        Answer = _answer,
+                        Question = question
+                    }))
+                {
+                    sum += item.Question.Compare(item.Answer, Value / Questions.Count);
+                }
+
+                return sum;
+            }
         }
     }
 }

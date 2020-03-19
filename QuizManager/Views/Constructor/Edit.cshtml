@@ -1,0 +1,34 @@
+﻿@using QuizManager.ModelViews;
+@using QuizManager.DBModels;
+@{
+    ViewBag.Title = "Edit";
+}
+@model QuizView
+
+<h2>Edit</h2>
+
+<div class="container">
+
+    @using (Html.BeginForm("Edit", "Constructor", FormMethod.Post))
+    {
+        @Html.HiddenFor(x=>x.Id)
+
+        @Html.LabelFor(x => x.Name)
+        @Html.TextBoxFor(x => x.Name)
+
+        @Html.LabelFor(x => x.Type)
+        @Html.EnumDropDownListFor(x => x.Type)
+
+        @Html.LabelFor(x => x.UserData)
+        @Html.EnumDropDownListFor(x => x.UserData)
+
+        @Html.LabelFor(x => x.QuestionCount)
+        @Html.TextBoxFor(x => x.QuestionCount, new { type = "number" })
+
+        @Html.LabelFor(x => x.TimeLimit)
+        @Html.TextBoxFor(x => x.TimeLimit, new { type = "time" })
+
+        <input type="submit" class="btn btn-success" value="Edit" />
+    }
+
+</div>

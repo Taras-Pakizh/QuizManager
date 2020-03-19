@@ -10,18 +10,18 @@
 
 @helper AddOptionButton(string _class)
 {
-    <a href="#" type="button" class="@_class btn btn-default btn-circle btn-xl">
+    <a href="#" type="button" class="@_class btn btn-default btn-circle">
 
-        <i class="fa fa-plus fa-2x"></i>
+        <i class="fa fa-plus"></i>
 
     </a>
 }
 
 @helper RemoveOptionButton(string _class)
 {
-    <a href="#" type="button" class="@_class btn btn-default btn-circle btn-xl">
+    <a href="#" type="button" class="@_class btn btn-default btn-circle">
 
-        <i class="fa fa-close fa-2x"></i>
+        <i class="fa fa-close"></i>
 
     </a>
 }
@@ -56,8 +56,24 @@
 
 @helper GroupSubmits(IEnumerable<int> orderNumbers)
 {
-    foreach (var item in orderNumbers)
+    <div id="qGroup">
+
+        @foreach (var item in orderNumbers)
+        {
+            <input name="value" type="submit" value="@item" class="btn btn-default btn-squared-small question choose" />
+        }
+
+    </div>
+}
+
+@helper CheckBoxSimple(string Name, bool IsChecked, string value)
+{
+    if (IsChecked)
     {
-        <input name="value" type="submit" value="@item" class="btn btn-default btn-squared-small" />
+        <input type="checkbox" name="@Name" value="@value" checked="checked"/>
+    }
+    else
+    {
+        <input type="checkbox" name="@Name" value="@value"/>
     }
 }

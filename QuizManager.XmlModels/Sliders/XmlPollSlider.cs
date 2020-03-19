@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuizManager.XmlModels.Answers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,17 +8,21 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlPollSlider : XmlSlider
+    public abstract class XmlPollSlider : XmlBase, IAnswerName
     {
-        public XmlPollSlider(string leftS, int leftI, string rightS, int rightI)
+        public XmlPollSlider() { }
+
+        public double LeftLimit { get; set; }
+
+        public double RightLimit { get; set; }
+
+        public string LeftText { get; set; }
+
+        public string RightText { get; set; }
+
+        public string GetTypeName()
         {
-            LeftLimit = leftI;
-
-            LeftText = leftS;
-
-            RightLimit = rightI;
-
-            RightText = rightS;
+            return (typeof(XmlSliderAnswer)).Name;
         }
     }
 }

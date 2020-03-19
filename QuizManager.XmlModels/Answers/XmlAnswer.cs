@@ -8,9 +8,7 @@ namespace QuizManager.XmlModels
 {
     [Serializable]
     public abstract class XmlAnswer<T> : XmlBase
-    {
-        public int Id { get; set; }
-
+    {   
         public T Answer { get; set; }
     }
 }

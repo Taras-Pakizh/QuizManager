@@ -7,13 +7,8 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlPollMatching : XmlMatching
+    public class XmlPollMatching : XmlMatching<XmlPollList>
     {
-        public override bool Create(IEnumerable<string> questions, IEnumerable<string> options, bool[][] answers, XmlQuestionType type)
-        {
-            MatchingType = type;
-
-            return _Initialize(questions, options);
-        }
+        
     }
 }

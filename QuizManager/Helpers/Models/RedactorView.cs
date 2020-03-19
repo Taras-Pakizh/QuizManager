@@ -17,7 +17,10 @@ namespace QuizManager.Helpers.Models
 
         public abstract XmlBase Model { get; set; }
 
-        public abstract string View { get; }
+        public string View
+        {
+            get { return this.GetType().Name; }
+        }
 
 
 
@@ -35,8 +38,7 @@ namespace QuizManager.Helpers.Models
                 Types = new Dictionary<QuizType, Type>()
                 {
                     {QuizType.Poll, typeof(PollListRedactorView)},
-                    //{QuizType.Test, typeof(XmlTestList)},
-                    //{QuizType.PollWithResult, typeof(XmlPollResList)}
+                    {QuizType.Test, typeof(TestListRedactorView)},
                 }
             },
         };

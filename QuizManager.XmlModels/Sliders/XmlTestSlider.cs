@@ -3,22 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QuizManager.XmlModels.Answers;
+
 
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlTestSlider : XmlSlider, IXmlTask<int>
+    public class XmlTestSlider : XmlPollSlider, IXmlTask
     {
-        public int TrueValue { get; set; }
+        public double TrueValue { get; set; }
 
-        public object Compare(XmlAnswer<int> answer)
+        public double Compare(XmlBase answer, double Value)
         {
-            if(answer.Answer == TrueValue)
+            var _answer = answer as XmlSliderAnswer;
+
+            if(_answer.Answer == TrueValue)
             {
-                return true;
+                return Value;
             }
 
-            return false;
+            return 0;
         }
     }
 }

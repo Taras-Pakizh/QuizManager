@@ -9,5 +9,12 @@ namespace QuizManager.XmlModels.Answers
     [Serializable]
     public class XmlMatchingSingleAnswer : XmlAnswer<int[]>
     {
+        public List<XmlSingleAnswer> Answers
+        {
+            get
+            {
+                return Answer.Select(x => new XmlSingleAnswer() { Answer = x }).ToList();
+            }
+        }
     }
 }
