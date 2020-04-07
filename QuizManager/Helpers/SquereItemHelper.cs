@@ -11,6 +11,15 @@ namespace QuizManager.Helpers
 {
     public static class SquereItemHelper
     {
+        public static string StringWithIndex(this HtmlHelper html, string name, int index)
+        {
+            var insertIndex = name.IndexOf("[]");
+
+            insertIndex++;
+
+            return name.Insert(insertIndex, index.ToString());
+        }
+
         public static MvcHtmlString CreateList(this HtmlHelper html, string[] items)
         {
             TagBuilder ul = new TagBuilder("ul");

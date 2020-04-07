@@ -18,8 +18,6 @@ namespace QuizManager.Controllers
     [Authorize]
     public class ConstructorController : AbstractController
     {
-        //view = Name
-        //value = Type Name
         
         public ConstructorController() : base()
         {

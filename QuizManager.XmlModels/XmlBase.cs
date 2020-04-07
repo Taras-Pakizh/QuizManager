@@ -41,5 +41,10 @@ namespace QuizManager.XmlModels
         {
             return Type.GetType("QuizManager.XmlModels." + typeName);
         }
+
+        public static Type GetTypeAnswer(string typeName)
+        {
+            return Type.GetType("QuizManager.XmlModels.Answers." + typeName);
+        }
     }
 }

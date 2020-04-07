@@ -1,0 +1,95 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model TestView
+
+@{
+    XmlQuestionType? ListType = null;
+    var Options = new List<XmlPollOption>();
+
+    if (Model.Model is XmlPollList)
+    {
+        var testList = Model.Model as XmlPollList;
+        ListType = (XmlQuestionType)testList.ListType;
+        Options = testList.Options;
+    }
+    else if (Model.Model is XmlTestList)
+    {
+        var testList = Model.Model as XmlTestList;
+        ListType = (XmlQuestionType)testList.ListType;
+        Options = testList.Options.Select(x => new XmlPollOption()
+        {
+            Id = x.Id,
+            Text = x.Text
+        }).ToList();
+    }
+
+    var qPath = "SectionData[" + Model.Index + "].QuestionId";
+
+    var nPath = "SectionData[" + Model.Index + "].Answers";
+
+    var selectList = Options.Select(x => new SelectListItem()
+    {
+        Text = x.Text,
+        Value = x.Id.ToString()
+    }).ToList();
+}
+
+@Html.Hidden(qPath, Model.Question.Id)
+
+<div class="well">
+
+    <label>@Model.Question.Text</label>
+
+</div>
+
+@if (ListType == XmlQuestionType.ComboBox)
+{
+    if(Model.Save != null && Model.Save.Answers != null)
+    {
+        var selectedValue = Model.Save.Answers.Single();
+
+        selectList.Find(x => x.Value == selectedValue).Selected = true;
+    }
+
+    <div class="form-group">
+        @Html.DropDownList(nPath, selectList, new { @class = "form-control" })
+    </div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var item in Options)
+        {
+            var isChecked = false;
+
+            if (Model.Save != null && Model.Save.Answers.Contains(item.Id.ToString()))
+            {
+                isChecked = true;
+            }
+
+            <li class="list-group-item">
+                @if (ListType == XmlQuestionType.Radio)
+                {
+                    <div class="radio">
+                        <label>
+                            @Html.RadioButton(nPath, item.Id, isChecked)
+                            @item.Text
+                        </label>
+                    </div>
+                }
+                else if (ListType == XmlQuestionType.Checkbox)
+                {
+                    <div class="checkbox">
+                        <label>
+                            @RenderHelper.CheckBoxSimple(nPath, isChecked, item.Id.ToString())
+                            @item.Text
+                        </label>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}

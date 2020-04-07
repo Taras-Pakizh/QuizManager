@@ -1,0 +1,42 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+
+@model SectionView
+
+<div class="container">
+
+    <div>
+
+        @using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm" }))
+        {
+            int index = 0;
+            foreach (var item in Model.Tests)
+            {
+                <div class="container test">
+                    @{
+                        item.Index = index;
+                        ++index;
+                    }
+                    @Html.Partial(item.View, item)
+                </div>
+            }
+
+            <div id="navigation">
+
+                @Html.HiddenFor(x=>x.QuizId)
+
+                @Html.HiddenFor(x=>x.SectionId)
+
+                @Html.HiddenFor(x=>x.Next)
+
+                @Html.HiddenFor(x=>x.Prev)
+
+                <input type="submit" class="btn btn-success" value="Save" />
+
+            </div>
+        }
+
+    </div>
+
+</div>

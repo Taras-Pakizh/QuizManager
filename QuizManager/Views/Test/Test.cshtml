@@ -1,0 +1,100 @@
+﻿@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+
+@model Quiz
+
+@{
+    //Model.TimeLimit = new TimeSpan(1000000000);
+}
+
+<div class="container">
+
+    @Html.Label("Quiz:")
+    @Html.DisplayFor(x=>x.Name)
+
+    <span id="timer"></span>
+
+    Dont refrash the page
+
+</div>
+
+<div id="tests">
+
+    @if((int)Session["page"] == 0)
+    {
+        //means first load
+
+        var sectionView = new SectionView()
+        {
+            QuizId = Model.Id,
+            Tests = ViewBag.Tests,
+            SectionId = 1,
+        };
+
+        <div>
+            @Html.Partial("TestSection", sectionView)
+        </div>
+    }
+
+</div>
+
+
+
+
+
+@section scripts
+{
+    <script>
+
+        $(window).on('beforeunload', function () {
+            return "";
+        });
+
+    </script>
+}
+
+<script>
+
+    var totalSeconds = @Model.TimeLimit.Value.TotalSeconds;
+
+    function TimerValue() {
+
+        var seconds = totalSeconds % 60;
+        var minutes = parseInt(totalSeconds / 60);
+        var hours = parseInt(totalSeconds / 3600);
+
+        return "Time Left: " + TimeFormat(hours) + ":" + TimeFormat(minutes) + ":" + TimeFormat(seconds);
+    }
+
+    function TimeFormat(value) {
+        if (value > 9) {
+            return value.toString();
+        }
+        return "0" + value;
+    }
+
+    function Finish() {
+        document.forms['ff'].submit();
+    }
+
+    function Tick() {
+
+        document.getElementById('timer').innerText = TimerValue();
+
+        var _tick = setInterval(function () {
+
+            totalSeconds--;
+
+            if (totalSeconds == 0) {
+                Finish();
+                clearInterval(_tick);
+            }
+
+            document.getElementById('timer').innerText = TimerValue();
+
+        }, 1000);
+    }
+
+    Tick();
+
+</script>

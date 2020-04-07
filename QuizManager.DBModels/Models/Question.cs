@@ -16,6 +16,8 @@ namespace QuizManager.DBModels
 
         public virtual Quiz Quiz { get; set; }
 
+        public virtual Section Section { get; set; }
+
         public QuestionType? Type { get; set; }
 
         public QuestionObligation Obligation { get; set; }
