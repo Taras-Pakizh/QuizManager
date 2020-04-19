@@ -4,39 +4,47 @@
 
 @model SectionView
 
-<div class="container">
-
-    <div>
-
-        @using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm" }))
-        {
-            int index = 0;
-            foreach (var item in Model.Tests)
-            {
-                <div class="container test">
-                    @{
-                        item.Index = index;
-                        ++index;
-                    }
-                    @Html.Partial(item.View, item)
-                </div>
+@using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm" }))
+{
+    int index = 0;
+    foreach (var item in Model.Tests)
+    {
+        <div class="test">
+            @{
+                item.Index = index;
+                ++index;
             }
+            @Html.Partial(item.View, item)
+        </div>
+    }
 
-            <div id="navigation">
+    <div id="navigation" class="container form-inline text-center">
 
-                @Html.HiddenFor(x=>x.QuizId)
+        @Html.HiddenFor(x => x.QuizId)
 
-                @Html.HiddenFor(x=>x.SectionId)
+        @Html.HiddenFor(x => x.SectionId)
 
-                @Html.HiddenFor(x=>x.Next)
-
-                @Html.HiddenFor(x=>x.Prev)
-
-                <input type="submit" class="btn btn-success" value="Save" />
-
+        @if (Model.PrevVisibility)
+        {
+            <div class="form-group">
+                <input type="submit" class="btn btn-default" name="submit" value="Previous" />
             </div>
         }
 
-    </div>
+        @if (Model.NextVisibility)
+        {
+            <div class="form-group">
+                <input type="submit" class="btn btn-default" name="submit" value="Next" />
+            </div>
+        }
 
-</div>
+        @if (Model.IsFinish)
+        {
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" name="submit" value="Finish" />
+            </div>
+
+        }
+
+    </div>
+}

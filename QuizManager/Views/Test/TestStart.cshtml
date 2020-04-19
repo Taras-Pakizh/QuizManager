@@ -1,40 +1,44 @@
-﻿@using QuizManager.DBModels;
-
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
 @model Quiz
+
+<br />
 
 <div class="container">
 
-    @Html.Label("Quiz name:")
-    @Html.DisplayFor(x=>x.Name)
+    <div class="container">
 
-    @Html.Label("Question count:")
-    @Html.DisplayFor(x=>x.QuestionCount)
+        @Html.Partial("TableByProperty", new TableView()
+        {
+            data = new List<Quiz>() { Model },
+            PropertyNames = new List<string>()
+            {
+                "Name", "Type", "TimeLimit", "UserData", "Value"
+            },
+            HeaderNames = new List<string>()
+            {
+                "Name", "Type", "Time limit", "Authorization type", "Highest mark"
+            }
+        })
 
-    @Html.Label("Time Limit:")
-    @Html.DisplayFor(x=>x.TimeLimit)
-
-    @Html.Label("Quiz type:")
-    @Html.DisplayFor(x=>x.Type)
-
-    <p>Input description for every type of quiz!!!</p>
-    
-    @Html.Label("Authorization type:")
-    @Html.DisplayFor(x=>x.UserData)
-
-    @Html.Label("Created by:")
-    @Html.DisplayFor(x=>x.User.UserName)
+    </div>
 
     <div id="submit">
 
         @using (Html.BeginForm("Test", "Test", FormMethod.Post))
         {
-            @Html.HiddenFor(x=>x.Id)
+            @Html.HiddenFor(x => x.Id)
 
-            <label for="sub">Do you want to start quiz?</label>
+            <div class="form-group">
 
-            <input type="submit" id="sub" class="btn btn-default" value="Start Quiz" />
+                <label for="sub">Do you want to start quiz?</label>
+                <input type="submit" id="sub" class="btn btn-default" value="Start Quiz" />
+            </div>
         }
 
     </div>
+
+    <h5>Input description for every type of quiz!!!</h5>
 
 </div>

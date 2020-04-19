@@ -6,62 +6,119 @@
     ViewBag.Title = "GetLink";
 }
 
-<h2>GetLink</h2>
-
-<div class="container">
-
-    <h4>Quiz:</h4>
+<br />
 
     <div class="container">
 
-        @Html.Partial("TableByProperty", new TableView()
-        {
-            data = new List<Quiz>() { Model.Quiz },
-            PropertyNames = new List<string>()
-            {
-                "Name", "Type", "TimeLimit", "QuestionCount"
-            },
-            HeaderNames = new List<string>()
-            {
-                "Name", "Type", "Time limit", "Question count"
-            }
-        })
-
-    </div>
-
-    @if (Model.IsRefExists)
-    {
         <div class="container">
 
-            <label>Exist link:</label>
-            @Html.DisplayTextFor(x => x.Link)
+            @Html.Partial("TableByProperty", new TableView()
+            {
+                data = new List<Quiz>() { Model.Quiz },
+                PropertyNames = new List<string>()
+                {
+                    "Name", "Type", "TimeLimit", "UserData", "Value"
+                },
+                HeaderNames = new List<string>()
+                {
+                    "Name", "Type", "Time limit", "Authorization type", "Highest mark"
+                }
+            })
 
         </div>
-    }
 
-    <div class="container">
-
-        @using (Html.BeginForm("GetLink", "Cabinet", FormMethod.Get))
+        @if (!Model.IsQuizValid)
         {
-            <input type="hidden" value="@Model.Quiz.Id" name="id" />
-            <input type="submit" class="btn btn-default" value="Generate" />
+            <div class="container form-group">
+
+                <div class="form-group">
+
+                    <strong>This quiz is not finished</strong>
+
+                </div>
+
+                <div id="errors" class="form-group">
+
+                    @foreach (var error in Model.Errors)
+                    {
+                        <div class="alert alert-danger">
+                            @error
+                        </div>
+                    }
+
+                </div>
+
+            </div>
         }
-
-        @if (Model.IsRefExists)
+        else
         {
-            using (Html.BeginForm("DeleteLink", "Cabinet", FormMethod.Get))
+            if (Model.IsRefExists)
             {
-                <input type="hidden" name="Id" value="@Model.Reference.Id" />
-                <input type="submit" class="btn btn-danger" value="Delete link" />
+                <div class="container form-inline">
+
+                    <label>Exist link: </label>
+
+                    <input id="link" style="width:2000px;" type="text" value="@Model.Link" class="form-control" />
+
+                    <button type="button" class="copy-link btn btn-default">Copy Link</button>
+
+                </div>
             }
+
+            <br />
+
+            <div class="container form-inline">
+
+                <div class="form-group">
+                    @using (Html.BeginForm("GetLink", "Cabinet", FormMethod.Get))
+                    {
+                        <input type="hidden" value="@Model.Quiz.Id" name="id" />
+                        <input type="submit" class="btn btn-default" value="Generate link" />
+                    }
+                </div>
+
+                @if (Model.IsRefExists)
+                {
+                    <div class="form-group">
+                        @using (Html.BeginForm("DeleteLink", "Cabinet", FormMethod.Get))
+                        {
+                            <input type="hidden" name="Id" value="@Model.Reference.Id" />
+                            <input type="submit" class="btn btn-danger" value="Delete link" />
+                        }
+                    </div>
+                }
+
+            </div>
+
         }
 
+        <br />
+
+        <div class="container form-group">
+
+            @RenderHelper.Back(Url.Action("Index", "Cabinet"))
+
+        </div>
+
     </div>
 
-    <div class="container">
 
-        @RenderHelper.Back(Url.Action("Index", "Cabinet"))
+@section scripts
+{
+    <script>
 
-    </div>
+        $(document).on('click', 'button.copy-link', function () {
 
-</div>
+            var link = document.getElementById('link');
+
+            link.select();
+            link.setSelectionRange(0, 99999);
+
+            document.execCommand("copy");
+
+            alert("Link is copied to clipboard: " + link.value);
+
+        });
+
+    </script>
+}

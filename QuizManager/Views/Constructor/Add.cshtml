@@ -19,8 +19,8 @@
         @Html.LabelFor(x=>x.UserData)
         @Html.EnumDropDownListFor(x=>x.UserData)
 
-        @Html.LabelFor(x=>x.QuestionCount)
-        @Html.TextBoxFor(x=>x.QuestionCount, new {type="number"})
+        @Html.Label("Highest mark:")
+        @Html.TextBoxFor(x=>x.Value, new {type="number", min="0.01", step="0.01"})
 
         @Html.LabelFor(x=>x.TimeLimit)
         @Html.TextBoxFor(x=>x.TimeLimit, new { type = "time"})

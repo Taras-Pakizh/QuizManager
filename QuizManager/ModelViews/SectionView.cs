@@ -8,9 +8,11 @@ namespace QuizManager.ModelViews
 {
     public class SectionView
     {
-        public bool Next { get; set; }
+        public bool PrevVisibility { get; set; }
 
-        public bool Prev { get; set; }
+        public bool NextVisibility { get; set; }
+
+        public bool IsFinish { get; set; }
 
         public int QuizId { get; set; }
 

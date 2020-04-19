@@ -20,6 +20,8 @@ namespace QuizManager.DBModels
 
         public double Mark { get; set; }
 
+        public string TypeName { get; set; }
+
         [Column(TypeName = "xml")]
         public string XmlAnswer { get; set; }
 

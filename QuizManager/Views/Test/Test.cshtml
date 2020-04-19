@@ -7,39 +7,27 @@
     //Model.TimeLimit = new TimeSpan(1000000000);
 }
 
-<div class="container">
+<div class="jumbotron">
 
-    @Html.Label("Quiz:")
-    @Html.DisplayFor(x=>x.Name)
+    <h2>@Model.Name</h2>
 
-    <span id="timer"></span>
+    <div class="pull-right">
+        <span id="timer"></span><br />
 
-    Dont refrash the page
+        <strong>Don't refrash</strong>
+    </div>
 
 </div>
 
 <div id="tests">
 
-    @if((int)Session["page"] == 0)
+    @if ((int)Session["page"] == 0)
     {
         //means first load
-
-        var sectionView = new SectionView()
-        {
-            QuizId = Model.Id,
-            Tests = ViewBag.Tests,
-            SectionId = 1,
-        };
-
-        <div>
-            @Html.Partial("TestSection", sectionView)
-        </div>
+        @Html.Partial("TestSection", ViewBag.Section as SectionView)
     }
 
 </div>
-
-
-
 
 
 @section scripts

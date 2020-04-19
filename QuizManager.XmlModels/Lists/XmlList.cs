@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using QuizManager.DBModels;
-using QuizManager.XmlModels.Answers;
 
 namespace QuizManager.XmlModels
 {

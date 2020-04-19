@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuizManager.XmlModels.Answers
+namespace QuizManager.XmlModels
 {
     [Serializable]
     public class XmlMatchingSingleAnswer : XmlAnswer<int[]>
@@ -17,8 +17,25 @@ namespace QuizManager.XmlModels.Answers
             }
         }
 
+        public override bool IsValid()
+        {
+            if(Answer == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
         public override void ParseAnswer(List<string> values)
         {
+            //Need default values because - some answer is init other not - 
+            //and they shuffling
+
+            if(values == null)
+            {
+                return;
+            }
+
             var result = new List<int>();
 
             foreach(var item in values)

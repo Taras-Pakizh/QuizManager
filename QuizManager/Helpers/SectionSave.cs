@@ -1,7 +1,6 @@
 ﻿using QuizManager.DBModels;
 using QuizManager.ModelViews;
 using QuizManager.XmlModels;
-using QuizManager.XmlModels.Answers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace QuizManager.Helpers
         public SectionSave(SectionView view, QuizContext cx)
         {
             View = view;
-
+            
             View.Tests = new List<TestView>();
 
             foreach(var item in view.SectionData)
@@ -36,12 +35,12 @@ namespace QuizManager.Helpers
                     Model = XmlBase.Deserialize(question.XmlObject, question.TypeName),
                     Save = item
                 };
-
+                //-----------------Is SectionData count equal Test count?-------------
                 View.Tests.Add(testSave);
 
                 var xmlQuestion = XmlBase.Deserialize(question.XmlObject, question.TypeName);
 
-                var answerType = XmlBase.GetTypeAnswer(((IAnswerName)xmlQuestion).GetTypeName());
+                var answerType = XmlBase.GetType(((IAnswerName)xmlQuestion).GetTypeName());
 
                 var answerInstance = (XmlBase)Activator.CreateInstance(answerType);
 

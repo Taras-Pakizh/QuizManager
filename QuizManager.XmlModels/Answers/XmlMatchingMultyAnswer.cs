@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuizManager.XmlModels.Answers
+namespace QuizManager.XmlModels
 {
     [Serializable]
     public class XmlMatchingMultyAnswer : XmlAnswer<int[][]>
@@ -20,11 +20,25 @@ namespace QuizManager.XmlModels.Answers
             }
         }
 
+        public override bool IsValid()
+        {
+            if(Answer == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
         /// <summary>
         /// if next val is equal or samller than previous, next question
         /// </summary>
         public override void ParseAnswer(List<string> values)
         {
+            if(values == null)
+            {
+                return;
+            }
+
             var result = new List<List<int>>();
             result.Add(new List<int>());
 

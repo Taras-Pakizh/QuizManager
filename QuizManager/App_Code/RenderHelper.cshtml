@@ -8,6 +8,24 @@
     </a>
 }
 
+@helper UpArrow(string _class)
+{
+    <button type="button" class="@_class btn btn-default btn-circle">
+
+        <i class="fa fa-arrow-up"></i>
+
+    </button>
+}
+
+@helper DownArrow(string _class)
+{
+    <button type="button" class="@_class btn btn-default btn-circle">
+
+        <i class="fa fa-arrow-down"></i>
+
+    </button>
+}
+
 @helper AddOptionButton(string _class)
 {
     <a href="#" type="button" class="@_class btn btn-default btn-circle">
@@ -54,6 +72,17 @@
     </a>
 }
 
+@helper ActionWithParameter(string url, string id, string text, string _class) 
+{ 
+    {
+        url = url + "?id=" + id;
+    }
+
+    <a href="@url" type="button" class="btn btn-default @_class">
+        @text
+    </a>
+}
+
 @helper GroupSubmits(IEnumerable<int> orderNumbers)
 {
     <div id="qGroup">
@@ -70,10 +99,10 @@
 {
     if (IsChecked)
     {
-        <input type="checkbox" name="@Name" value="@value" checked="checked"/>
+        <input type="checkbox" name="@Name" value="@value" checked="checked" />
     }
     else
     {
-        <input type="checkbox" name="@Name" value="@value"/>
+        <input type="checkbox" name="@Name" value="@value" />
     }
 }

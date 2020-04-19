@@ -24,7 +24,7 @@ namespace QuizManager.DBModels
         [DataType(DataType.Time)]
         public TimeSpan? TimeLimit { get; set; }
 
-        public int QuestionCount { get; set; }
+        public double Value { get; set; }
 
         public virtual ICollection<Group> Groups { get; set; }
 

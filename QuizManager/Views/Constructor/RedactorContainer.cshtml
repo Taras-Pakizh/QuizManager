@@ -15,7 +15,7 @@
             @using (Ajax.BeginForm("Change", new AjaxOptions() { UpdateTargetId = "inner" }))
             {
                 @Html.HiddenFor(x => x.Quiz.Id)
-
+                @Html.HiddenFor(x=>x.Section.Id)
                 @Html.HiddenFor(x => x.Question.Id)
 
                 <div class="form-group">
@@ -43,11 +43,26 @@
     <br/>
 
     <div class="row form-group pull-right">
-        @using (Html.BeginForm("Delete", "Constructor", FormMethod.Get))
-        {
-            <input type="hidden" value="@Model.Question.Id" name="id" />
-            <input type="submit" class="btn btn-danger" value="Delete" />
-        }
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete">Delete</button>
+        <div class="modal fade" id="delete" role="dialog">
+            <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Alert</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Delete this Question?</p>
+                    </div>
+                    <div class="modal-footer">
+                        @RenderHelper.ActionWithParameter(Url.Action("Delete", "Constructor"), Model.Question.Id.ToString(), "Delete", "")
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
 </div>
@@ -59,7 +74,7 @@
         var model = RedactorView.GetView((QuestionType)Model.Question.Type, Model.Quiz.Type);
 
         model.Question = Model.Question;
-
+        model.Section = Model.Section;
         model.Quiz = Model.Quiz;
 
         model.Model = XmlBase.Deserialize(Model.Question.XmlObject, Model.Question.TypeName);

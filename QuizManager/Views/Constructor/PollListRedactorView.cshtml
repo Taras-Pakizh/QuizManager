@@ -28,7 +28,7 @@
 
         @using (Ajax.BeginForm("SaveXmlListPoll", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
         {
-
+            @Html.HiddenFor(x=>x.Section.Id)
             @Html.HiddenFor(x => x.Question.Id)
             @Html.HiddenFor(x => x.Quiz.Id)
             <input type="hidden" name="_XmlModel.ListType" value="@type" />

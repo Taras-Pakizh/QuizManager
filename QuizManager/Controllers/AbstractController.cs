@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.Identity.Owin;
 using QuizManager.DBModels;
+using QuizManager.Logic;
 using QuizManager.ModelViews;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace QuizManager.Controllers
     public abstract class AbstractController:Controller
     {
         public QuizContext cx;
+
+        public ControllerHelper helper;
 
         private ApplicationUserManager _userManager;
 

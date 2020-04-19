@@ -14,5 +14,7 @@ namespace QuizManager.XmlModels
         public string Text { get; set; }
 
         public bool IsTrue { get; set; }
+
+        public string Comment { get; set; }
     }
 }

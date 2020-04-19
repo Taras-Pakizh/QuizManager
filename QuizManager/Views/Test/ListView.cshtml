@@ -51,11 +51,14 @@
     {
         var selectedValue = Model.Save.Answers.Single();
 
-        selectList.Find(x => x.Value == selectedValue).Selected = true;
+        if(selectedValue != "")
+        {
+            selectList.Find(x => x.Value == selectedValue).Selected = true;
+        }
     }
 
     <div class="form-group">
-        @Html.DropDownList(nPath, selectList, new { @class = "form-control" })
+        @Html.DropDownList(nPath, selectList, "Please select answer", new { @class = "form-control" })
     </div>
 }
 else
@@ -63,11 +66,13 @@ else
     <ul class="list-group">
         @foreach (var item in Options)
         {
-            var isChecked = false;
+            bool isChecked = false;
+            
+            var val = Model?.Save?.Answers?.Contains(item.Id.ToString());
 
-            if (Model.Save != null && Model.Save.Answers.Contains(item.Id.ToString()))
+            if(val != null)
             {
-                isChecked = true;
+                isChecked = (bool)val;
             }
 
             <li class="list-group-item">

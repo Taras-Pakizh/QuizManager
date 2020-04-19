@@ -23,19 +23,6 @@ namespace QuizManager.DBModels
 
         public double Mark { get; set; }
 
-        public virtual ResultType Result { get; set; }
-
         public virtual ICollection<Answer> Answers { get; set; }
-
-        [Column(TypeName = "xml")]
-        public string XmlValue { get; set; }
-
-        [NotMapped]
-        public XElement XmlObject
-        {
-            get { return XElement.Parse(XmlValue); }
-
-            set { XmlValue = value.ToString(); }
-        }
     }
 }

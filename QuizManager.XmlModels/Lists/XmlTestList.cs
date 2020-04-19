@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using QuizManager.XmlModels.Answers;
 
 namespace QuizManager.XmlModels
 {
@@ -17,7 +16,7 @@ namespace QuizManager.XmlModels
                 throw new Exception("list isn't initialized");
             }
 
-            if(this.ListType == XmlQuestionType.ComboBox)
+            if(this.ListType == XmlQuestionType.Checkbox)
             {
                 var converted = answer as XmlMultyAnswer;
 

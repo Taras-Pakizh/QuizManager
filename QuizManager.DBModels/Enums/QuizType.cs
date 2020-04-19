@@ -12,6 +12,8 @@ namespace QuizManager.DBModels
 
         Test,
 
-        PollWithResult
+        Adaptive,
+
+        PerQuestion
     }
 }

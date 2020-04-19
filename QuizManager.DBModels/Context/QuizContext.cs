@@ -25,7 +25,6 @@ namespace QuizManager.DBModels
         public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
         public virtual DbSet<Answer> Answers { get; set; }
         public virtual DbSet<QuizReference> QuizReferences { get; set; }
-        public virtual DbSet<ResultType> ResultTypes { get; set; }
         public virtual DbSet<Section> Sections { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

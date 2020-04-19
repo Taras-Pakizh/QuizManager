@@ -20,7 +20,11 @@ namespace QuizManager.DBModels
 
         public string Name { get; set; }
 
+        public int Order { get; set; }
+
         [DataType(DataType.Time)]
         public TimeSpan? TimeLimit { get; set; }
+
+        public int QuestionCount { get; set; }
     }
 }

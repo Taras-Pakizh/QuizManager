@@ -8,6 +8,13 @@
             {
                 <th>@item</th>
             }
+            @if(Model.Links != null)
+            {
+                foreach(var item in Model.Links)
+                {
+                    <th></th>
+                }
+            }
         </tr>
     </thead>
     <tbody>
@@ -19,6 +26,19 @@
                     <td>
                         @row.GetType().GetProperty(property).GetValue(row)
                     </td>
+                }
+                @if (Model.Links != null)
+                {
+                    foreach (var link in Model.Links.First())
+                    {
+                        <td>
+                            <a href="@link.Value" type="button" class="btn btn-default">
+                                @link.Key
+                            </a>
+                        </td>
+                    }
+
+                    Model.Links.RemoveAt(0);
                 }
             </tr>
         }

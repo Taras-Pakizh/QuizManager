@@ -1,5 +1,7 @@
-﻿using QuizManager.DBModels;
+﻿using Microsoft.AspNet.Identity;
+using QuizManager.DBModels;
 using QuizManager.Helpers;
+using QuizManager.Logic;
 using QuizManager.ModelViews;
 using QuizManager.XmlModels;
 using System;
@@ -15,6 +17,8 @@ namespace QuizManager.Controllers
         public TestController() : base()
         {
             cx = new QuizContext();
+
+            helper = new ControllerHelper(cx);
         }
 
         /// <summary>
@@ -57,30 +61,29 @@ namespace QuizManager.Controllers
                 Session["page"] = 0;
             }
 
-            var questions = cx.Questions.Where(x => x.Quiz.Id == quiz.Id).ToList();
+            var section = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).
+                    OrderBy(y => y.Order).
+                    First();
 
-            var Tests = new List<TestView>();
+            var questions = helper.GetRandomSectionQuestions(section.Id);
 
-            foreach (var question in questions)
+            var testViews = helper.CreateTestViews(questions, quiz);
+
+            var model = new SectionView()
             {
-                var testView = new TestView()
-                {
-                    Quiz = quiz,
-                    Question = question,
-                    Model = XmlBase.Deserialize(question.XmlObject, question.TypeName)
-                };
+                QuizId = quiz.Id,
+                SectionId = section.Id,
+                Tests = testViews,
+            };
 
-                Tests.Add(testView);
+            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).ToList();
 
-                break;
-            }
+            model = helper.SetNavigation(model, section, quiz);
 
-            ViewBag.Tests = Tests;
+            ViewBag.Section = model;
 
             return View(quiz);
         }
-
-        //------------------доробити (hidden default val) -----
 
         [HttpPost]
         /// <summary>
@@ -99,37 +102,200 @@ namespace QuizManager.Controllers
 
             testSave.Update(view);
 
-            //-----------------Change to Section----------------------
-            //-----------------Now just only try of first page--------
+            Session["save"] = testSave;
 
             var quiz = cx.Quizzes.Find(view.QuizId);
 
-            var model = new SectionView()
+            var prevSection = cx.Sections.Find(view.SectionId);
+
+            Section section = null;
+
+            if (Request.Form["submit"] == "Next")
             {
-                QuizId = view.QuizId,
-                SectionId = 1,
-                Tests = new List<TestView>()
-            };
-
-            var questions = cx.Questions.Where(x => x.Quiz.Id == quiz.Id).ToList();
-
-            foreach(var question in questions)
+                section = cx.Sections.Where(y=>y.Quiz.Id == quiz.Id).Single(x => x.Order == prevSection.Order + 1);
+            }
+            else if(Request.Form["submit"] == "Previous")
             {
-                var testView = new TestView()
-                {
-                    Quiz = quiz,
-                    Question = question,
-                    Model = XmlBase.Deserialize(question.XmlObject, question.TypeName)
-                };
-
-                model.Tests.Add(testView);
+                section = cx.Sections.Where(y => y.Quiz.Id == quiz.Id).Single(x => x.Order == prevSection.Order - 1);
+            }
+            else if(Request.Form["submit"] == "Finish")
+            {
+                return Finish(new FinishView() { Quiz = quiz });
             }
 
-            //---------------------------------------
+            SectionView model = null;
 
-            Session["page"] = model.SectionId;
+            if (testSave.Saves.ContainsKey(section.Id))
+            {
+                model = testSave.Saves[section.Id].View;
+            }
+            else
+            {
+                model = new SectionView()
+                {
+                    QuizId = quiz.Id,
+                    SectionId = section.Id,
+                };
+
+                var questions = helper.GetRandomSectionQuestions(section.Id);
+
+                model.Tests = helper.CreateTestViews(questions, quiz);
+            }
+
+            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).OrderBy(y => y.Order).ToList();
+
+            model = helper.SetNavigation(model, section, quiz);
+
+            ModelState.Clear();
 
             return PartialView("TestSection", model);
+        }
+
+        /// <summary>
+        /// Page for sumbiting finish of test
+        /// shows list of questions and is they initialized
+        /// </summary>
+        [HttpPost]
+        public ActionResult Finish(FinishView view)
+        {
+            var sectionAnswersList = new List<SectionAnswersView>();
+
+            view.Quiz = cx.Quizzes.Find(view.Quiz.Id);
+
+            var testSave = (TestSave)Session["save"];
+
+            foreach(var item in testSave.Saves)
+            {
+                var sectionAnswers = new SectionAnswersView()
+                {
+                    Section = cx.Sections.Find(item.Key),
+                    QuestionIndex_IsInit = new Dictionary<int, bool>()
+                };
+
+                int index = 1;
+
+                foreach(var questionAnswer in item.Value.Answers)
+                {
+                    sectionAnswers.QuestionIndex_IsInit.Add(
+                        index, 
+                        ((IParseAnswer)questionAnswer.Value).IsValid()
+                    );
+                    index++;
+                }
+
+                sectionAnswersList.Add(sectionAnswers);
+            }
+
+            view.SectionAnswers = sectionAnswersList;
+
+            ModelState.Clear();
+
+            return PartialView("Finish", view);
+        }
+
+        [HttpPost]
+        /// <summary>
+        /// using for backing from Finish page
+        /// </summary>
+        public ActionResult UndoFinish(FinishView view)
+        {
+            if (Session["save"] == null)
+            {
+                return HttpNotFound();
+            }
+
+            var testSave = (TestSave)Session["save"];
+
+            var quiz = cx.Quizzes.Find(view.Quiz.Id);
+
+            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).OrderBy(y => y.Order).ToList();
+
+            var lastSection = sections.Last();
+
+            var model = testSave.Saves[lastSection.Id].View;
+
+            model.IsFinish = true;
+
+            if(lastSection.Order != 1)
+            {
+                model.PrevVisibility = true;
+            }
+            
+            ModelState.Clear();
+
+            return PartialView("TestSection", model);
+        }
+
+        /// <summary>
+        /// Saving results is in Session files
+        /// This action is calculating and saving to database result of quiz
+        /// Just for TestQuiz!!!!!!! (Poll sucks)
+        /// </summary>
+        [HttpGet]
+        public ActionResult SaveAttemp(int? id)
+        {
+            var quiz = cx.Quizzes.Find(id);
+
+            var testSave = (TestSave)Session["save"];
+
+            quiz = cx.Quizzes.Find(quiz.Id);
+
+            var attemp = new QuizAttempt()
+            {
+                Quiz = quiz,
+                Time = DateTime.Now,
+                User = cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
+            };
+
+            var answers = new List<Answer>();
+
+            foreach(var sectionSave in testSave.Saves)
+            {
+                foreach(var questionIdAnswers in sectionSave.Value.Answers)
+                {
+                    var answer = new Answer()
+                    {
+                        Question = cx.Questions.Find(questionIdAnswers.Key),
+                        XmlObject = XmlBase.SerializeAbstract(questionIdAnswers.Value),
+                    };
+
+                    var question = cx.Questions.Find(questionIdAnswers.Key);
+
+                    XmlBase questionXml = XmlBase.Deserialize(question.XmlObject, question.TypeName);
+
+                    double mark = 0;
+
+                    if (((IParseAnswer)questionIdAnswers.Value).IsValid())
+                    {
+                        mark = ((IXmlTask)questionXml).Compare(questionIdAnswers.Value, question.Value);
+                    }
+
+                    answer.Mark = mark;
+
+                    answer.TypeName = ((IAnswerName)questionXml).GetTypeName();
+
+                    answers.Add(answer);
+                }
+            }
+
+            var scoredPoints = answers.Sum(x => x.Mark);
+
+            var wholePoints = cx.Questions.Where(x => x.Quiz.Id == quiz.Id).Sum(y => y.Value);
+
+            attemp.Mark = Math.Round(quiz.Value * (scoredPoints / wholePoints), 2);
+
+            cx.QuizAttempts.Add(attemp);
+
+            foreach(var item in answers)
+            {
+                item.Attempt = attemp;
+            }
+
+            cx.Answers.AddRange(answers);
+
+            cx.SaveChanges();
+
+            return RedirectToAction("GetAttepmt", "Cabinet", new { id = attemp.Id });
         }
     }
 }

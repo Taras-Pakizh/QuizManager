@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using QuizManager.XmlModels.Answers;
 using QuizManager.XmlModels;
 using QuizManager.DBModels;
 

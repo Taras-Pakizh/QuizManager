@@ -12,5 +12,7 @@ namespace QuizManager.ModelViews
         public IEnumerable<string> PropertyNames { get; set; }
 
         public IEnumerable<string> HeaderNames { get; set; }
+
+        public List<Dictionary<string, string>> Links { get; set; }
     }
 }

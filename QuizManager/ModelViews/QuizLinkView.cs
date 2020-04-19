@@ -15,5 +15,9 @@ namespace QuizManager.ModelViews
         public string Link { get; set; }
 
         public bool IsRefExists { get; set; }
+
+        public bool IsQuizValid { get; set; }
+
+        public List<string> Errors { get; set; }
     }
 }

@@ -17,6 +17,6 @@ namespace QuizManager.ModelViews
 
         public TimeSpan? TimeLimit { get; set; }
 
-        public int QuestionCount { get; set; }
+        public double Value { get; set; }
     }
 }

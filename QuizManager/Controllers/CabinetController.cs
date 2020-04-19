@@ -7,35 +7,20 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using QuizManager.ModelViews;
-using QuizManager.XmlModels.Answers;
 using QuizManager.XmlModels;
+using QuizManager.Helpers;
+using QuizManager.Logic;
 
 namespace QuizManager.Controllers
 {
     [Authorize]
-    public class CabinetController : Controller
+    public class CabinetController : AbstractController
     {
-        public QuizContext cx;
-
-        private ApplicationUserManager _userManager;
-
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
-
-
-
         public CabinetController():base()
         {
             cx = new QuizContext();
+
+            helper = new ControllerHelper(cx);
         }
 
         // GET: Cabinet
@@ -46,7 +31,7 @@ namespace QuizManager.Controllers
                 new SquereData()
                 {
                     Name = "Open",
-                    Link = Url.Action("Open", "Constructor")
+                    Link = Url.Action("Sections", "Constructor")
                 },
                 new SquereData()
                 {
@@ -91,7 +76,14 @@ namespace QuizManager.Controllers
                 Quiz = quiz
             };
 
-            if(reference.Count() != 0)
+            model.IsQuizValid = helper.IsQuizValid(quiz.Id, out List<string> Errors);
+
+            if (!model.IsQuizValid)
+            {
+                model.Errors = Errors;
+            }
+
+            if(reference.Count() != 0 && model.IsQuizValid)
             {
                 model.Reference = reference.Single();
 
@@ -99,10 +91,13 @@ namespace QuizManager.Controllers
 
                 model.Link = GenerateLink(reference.Single());
             }
-            
+
             return View(model);
         }
 
+        /// <summary>
+        /// Contain localhost address
+        /// </summary>
         private string GenerateLink(QuizReference reference)
         {
             return "https://localhost:44339/Test/GetTest?link=" + reference.Id;
@@ -166,7 +161,9 @@ namespace QuizManager.Controllers
             return RedirectToAction("QuizLink", new { id = quizId });
         }
 
-
+        /// <summary>
+        /// Delete Quiz
+        /// </summary>
         [HttpGet]
         public ActionResult Delete(int? id)
         {
@@ -179,7 +176,6 @@ namespace QuizManager.Controllers
 
             return View(model);
         }
-
         [HttpPost, ActionName("Delete")]
         public ActionResult DeletePost(int? id)
         {
@@ -200,11 +196,11 @@ namespace QuizManager.Controllers
             var references = cx.QuizReferences.Where(x => x.Quiz.Id == model.Id).ToList();
             cx.QuizReferences.RemoveRange(references);
 
-            var resultTypes = cx.ResultTypes.Where(x => x.Quiz.Id == model.Id).ToList();
-            cx.ResultTypes.RemoveRange(resultTypes);
-
             var questions = cx.Questions.Where(x => x.Quiz.Id == model.Id).ToList();
             cx.Questions.RemoveRange(questions);
+
+            var sections = cx.Sections.Where(x => x.Quiz.Id == model.Id).ToList();
+            cx.Sections.RemoveRange(sections);
 
             foreach(var group in model.Groups.ToList())
             {
@@ -220,97 +216,76 @@ namespace QuizManager.Controllers
 
         /// <summary>
         /// Open quiz statistic
-        /// Should generate models for view
-        /// View is list of attempts (3 types  of table)
-        /// Attemps has button open
+        /// Using inner partial view for generate table of attempts
+        /// Poll sucks
         /// </summary>
         [HttpGet]
         public ActionResult QuizInfo(int? id)
         {
             var quiz = cx.Quizzes.Find(id);
 
-            if(quiz == null)
-            {
-                return HttpNotFound();
-            }
-
             var attempts = cx.QuizAttempts.Where(x => x.Quiz.Id == quiz.Id).ToList();
 
-            ViewBag.QuizType = quiz.Type;
+            var model = new QuizInfoView()
+            {
+                Quiz = quiz,
+                Attempts = attempts
+            };
 
-            return View(attempts);
+            return View(model);
         }
 
         /// <summary>
-        /// Scroll where I can see all answers (close to testControll)
+        /// Generete page with answered quiz
+        /// Shows info about QuizAttemp
         /// </summary>
         [HttpGet]
         public ActionResult GetAttepmt(int? id)
         {
-            var model = cx.QuizAttempts.Find(id);
+            var view = cx.QuizAttempts.Find(id);
 
-            if(model == null)
+            var quiz = cx.Quizzes.Find(view.Quiz.Id);
+
+            var model = new QuizAttempView()
             {
-                return HttpNotFound();
-            }
+                Attempt = view,
+                Quiz = quiz,
+                Sections = new List<AttempSectionView>()
+            };
 
-            var list = new List<XmlQuestion_Answer>();
+            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).ToList();
 
-            foreach(var item in model.Answers.ToList())
+            foreach(var section in sections)
             {
-                var question = XmlBase.Deserialize(item.Question.XmlObject, item.Question.TypeName);
-
-                var answerName = ((IAnswerName)question).GetTypeName();
-
-                var answer = XmlBase.Deserialize(item.XmlObject, answerName);
-
-                list.Add(new XmlQuestion_Answer()
+                var sectionAttemp = new AttempSectionView()
                 {
-                    Question = question,
-                    Answer = answer,
-                    QuestionInfo = item.Question,
-                    AnswerInfo = item
-                });
+                    Section = section,
+                    Tests = new List<AttempTestView>()
+                };
+                
+                var answers = view.Answers.
+                    Where(x => x.Question.Section.Id == section.Id).
+                    OrderBy(y => y.Question.OrderNumber).ToList();
+
+                foreach(var answer in answers)
+                {
+                    var question = answer.Question;
+
+                    var testAttemp = new AttempTestView()
+                    {
+                        Question = question,
+                        Answer = answer,
+                        XmlAnswer = XmlBase.Deserialize(answer.XmlObject, answer.TypeName),
+                        Model = XmlBase.Deserialize(question.XmlObject, question.TypeName)
+                    };
+
+                    sectionAttemp.Tests.Add(testAttemp);
+                }
+
+                model.Sections.Add(sectionAttemp);
             }
 
-            ViewBag.Attempt = model;
-
-            ViewBag.Quiz = cx.Quizzes.Find(model.Quiz.Id);
-
-            return View(list);
-        }
-
-        /// <summary>
-        /// Open page for choosen question
-        /// models are data for:
-        /// grafics(columns % (for matching would be several grafics))
-        /// </summary>
-        [HttpGet]
-        public ActionResult QuestionInfo(int? id)
-        {
-            var question = cx.Questions.Find(id);
-
-            if(question == null)
-            {
-                return HttpNotFound();
-            }
-
-            //next is statistic
-            var answers = cx.Answers.Where(x => x.Question.Id == question.Id).ToList();
-
-            var list = new List<XmlBase>();
-
-            var AnswerName = ((IAnswerName)XmlBase.Deserialize(question.XmlObject, question.TypeName)).GetTypeName();
-
-            foreach(var item in answers)
-            {
-                list.Add(XmlBase.Deserialize(item.XmlObject, AnswerName));
-            }
-
-            //Make generic class to create model for grafic
-            //answers, list
-
-            return View();
+            return View(model);
         }
     }
 }

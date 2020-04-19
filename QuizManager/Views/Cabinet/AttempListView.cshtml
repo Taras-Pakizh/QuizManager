@@ -1,0 +1,108 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model AttempTestView
+
+@{
+    XmlTestList question = Model.Model as XmlTestList;
+
+    var answers = new List<int>();
+
+    if(Model.XmlAnswer is XmlSingleAnswer)
+    {
+        var singleAnswer = Model.XmlAnswer as XmlSingleAnswer;
+
+        answers.Add(singleAnswer.Answer);
+    }
+    else if(Model.XmlAnswer is XmlMultyAnswer)
+    {
+        var multyAnswer = Model.XmlAnswer as XmlMultyAnswer;
+
+        if(multyAnswer.Answer != null)
+        {
+            answers.AddRange(multyAnswer.Answer.ToList());
+        }
+    }
+}
+
+<div class="well">
+
+    <label>@Model.Question.Text</label>
+
+    <br />
+
+    <label>Mark:</label>
+
+    <span>@Model.Answer.Mark / @Model.Question.Value</span>
+
+    <br />
+
+    @foreach (var id in answers)
+    {
+        var option = question.Options.Single(x => x.Id == id);
+
+        if (option.IsTrue)
+        {
+            <div class="alert alert-success">
+                <span>@option.Comment</span>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <span>@option.Comment</span>
+            </div>
+        }
+    }
+
+</div>
+
+<ul class="list-group">
+    @foreach (var item in question.Options)
+    {
+        if (item.IsTrue && answers.Contains(item.Id))
+        {
+            <li class="list-group-item">
+                <div class="alert alert-success form-inline">
+                    @item.Text
+                    <div class="pull-right">
+                        <strong>Correct answer</strong>
+                    </div>
+                </div>
+            </li>
+        }
+        else if (answers.Contains(item.Id))
+        {
+            <li class="list-group-item">
+                <div class="alert alert-danger form-inline">
+                    @item.Text
+                    <div class="pull-right">
+                        <strong>Wrong answer</strong>
+                    </div>
+                </div>
+            </li>
+        }
+        else if (item.IsTrue)
+        {
+            <li class="list-group-item">
+                <div class="alert form-inline">
+                    @item.Text
+                    <div class="pull-right">
+                        <strong>Answer</strong>
+                    </div>
+                </div>
+            </li>
+        }
+        else
+        {
+            <li class="list-group-item">
+                <div class="alert form-inline">
+                    @item.Text
+                </div>
+            </li>
+        }
+    }
+</ul>
+

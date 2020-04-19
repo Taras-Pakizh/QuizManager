@@ -1,0 +1,45 @@
+﻿@using QuizManager.ModelViews;
+@using QuizManager.DBModels;
+@{
+    ViewBag.Title = "EditSection";
+}
+@model Section
+
+<div class="container">
+
+    @using (Html.BeginForm("EditSection", "Constructor", FormMethod.Post))
+    {
+        <div class="form-group">
+            <h2>Edit Section</h2>
+        </div>
+
+        @Html.HiddenFor(x => x.Quiz.Id)
+
+        @Html.HiddenFor(x=>x.Id)
+
+        <div class="form-group">
+            @Html.Label("Name:")
+            @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Type:")
+            @Html.EnumDropDownListFor(x => x.Type, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Time:")
+            @Html.TextBoxFor(x => x.TimeLimit, new { @class = "form-control", type = "time" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Questions count:")
+            @Html.TextBoxFor(x => x.QuestionCount, new { @class = "form-control", type = "number", min = "1" })
+        </div>
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-default" value="Edit" />
+        </div>
+    }
+
+</div>

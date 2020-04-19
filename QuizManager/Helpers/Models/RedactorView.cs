@@ -12,6 +12,8 @@ namespace QuizManager.Helpers.Models
     {
         public Quiz Quiz { get; set; }
 
+        public Section Section { get; set; }
+
         public Question Question { get; set; }
 
 

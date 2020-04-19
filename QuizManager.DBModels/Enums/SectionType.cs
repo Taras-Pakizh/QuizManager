@@ -10,8 +10,10 @@ namespace QuizManager.DBModels
     {
         Simple,
 
-        Adaptive,
+        Difficult,
 
+        Medium,
 
+        Easy
     }
 }
