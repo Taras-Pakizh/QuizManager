@@ -5,41 +5,42 @@
 
 @model RedactorView
 
-<div class="container">
+<div class="errors myhmargin">
 
-    <div class="errors container">
+    @if (ViewBag.Errors != null)
+    {
+        <div class="alert-danger">
+            <ul class="list-group">
+                @foreach (var item in ViewBag.Errors)
+                {
+                    <li class="list-group-item">
+                        @item
+                    </li>
+                }
+            </ul>
+        </div>
+    }
 
-        @if (ViewBag.Errors != null)
-        {
-            <div class="alert-danger">
-                <ul class="list-group">
-                    @foreach (var item in ViewBag.Errors)
-                    {
-                        <li class="list-group-item">
-                            @item
-                        </li>
-                    }
-                </ul>
-            </div>
-        }
+</div>
 
-    </div>
+<div class="saved myhmargin">
 
-    <div class="container saved">
+    @if (ViewBag.IsSaved != null)
+    {
+        <div class="alert alert-success">
+            Saved
+        </div>
+    }
 
-        @if (ViewBag.IsSaved != null)
-        {
-            <div class="alert alert-success">
-                Saved
-            </div>
-        }
+</div>
 
-    </div>
-
+<div class="myhmargin">
     @if (Model != null)
     {
         @Html.Partial(Model.View, Model)
     }
-
 </div>
+
+
+
 

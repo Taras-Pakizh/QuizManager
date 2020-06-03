@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,22 +9,25 @@ namespace QuizManager.DBModels
 {
     public enum QuestionType
     {
+        [Description("Radiobuttons")]
         Radio,
 
+        [Description("Checkboxes")]
         Checkbox,
 
+        [Description("Comboboxes")]
         ComboBox,
 
-        TrueFalse,
+        [Description("Matching - single answer")]
+        MatchingSingle,
 
-        Matching,
+        [Description("Matching - multiple answers")]
+        MatchingMulty,
 
-        TableOneChoice,
-
-        TableCheckboxes,
-
+        [Description("Text input")]
         TextInput,
 
-        Essay
+        [Description("Ordering options")]
+        Order
     }
 }

@@ -7,78 +7,63 @@
     ViewBag.Title = "GetAttepmt";
 }
 
-    <div class="container">
+<div class="well row mywell">
 
-        <div class="text-center">
-            <h3>Attemp</h3>
-        </div>
+    <div class="pull-left myhmargin">
+        @using (Html.BeginForm("GeneratePDF", "Cabinet", FormMethod.Post, new { id = "generateForm" }))
+        {
+            <input type="hidden" id="htmlContainer" name="htmlValue" />
 
-        <div class="form-group">
-            @Html.Label("Quiz:")
-            @Html.DisplayFor(x => x.Quiz.Name)
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Type:")
-            @Html.DisplayFor(x => x.Quiz.Type)
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Time limit:")
-            @Html.DisplayFor(x => x.Quiz.TimeLimit)
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Time of finishing attemp")
-            @Html.DisplayFor(x => x.Attempt.Time)
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Mark:")
-            @Html.DisplayFor(x=>x.Attempt.Mark)
-        </div>
-
+            <input type="submit" class="btn btn-info mycolor" value="Generate PDF" />
+        }
     </div>
 
-<div class="container">
+    <div class="pull-right myhmargin">
+        <h4>Quiz: <strong>@Model.Quiz.Name</strong></h4>
+        <h4>Type: <strong>@Model.Quiz.Type</strong></h4>
+        <h4>Time limit: <strong>@Model.Quiz.TimeLimit</strong></h4>
+        <h4>Time of finishing attempt: <strong>@Model.Attempt.Time</strong></h4>
+        <h4>Mark: <strong>@Model.Attempt.Mark / @Model.Quiz.Value</strong></h4>
+    </div>
+    
+</div>
+
+@section scripts
+{
+    <script>
+
+        $('#generateForm').submit(function() {
+            var value = document.getElementById('page').innerHTML;
+
+            var input = document.getElementById('htmlContainer');
+
+            input.setAttribute('value', value);
+        });
+
+    </script>
+}
+
+<div id="page">
 
     <ul class="list-group" id="sections">
 
-        @foreach(var Section in Model.Sections)
+        @foreach (var Section in Model.Sections)
         {
             <li class="list-group-item section">
 
-                <div class="container">
-
-                    <div class="form-group">
-                        <strong>№ </strong>
-
-                        @Section.Section.Order
-                    </div>
-
-                    <div class="form-group">
-                        <strong>Section: </strong>
-
-                        <span>@Section.Section.Name</span>
-                    </div>
-
-                    <div class="form-group">
-                        <strong>Type: </strong>
-                        <span>@Section.Section.Type</span>
-                    </div>
-
-                    <div class="form-group">
-                        <strong>Time Limit:</strong>
-                        <span>@Section.Section.TimeLimit</span>
-                    </div>
-                    
+                <div class="well mywell">
+                    <h4>Section name:<strong>@Section.Section.Name</strong></h4>
+                    @if (Section.Section.TimeLimitType == SectionTimeLimitType.Limited)
+                    {
+                        <h4>Time limit:<strong>@Section.Section.TimeLimit</strong></h4>
+                    }
                 </div>
 
                 <ul class="list-group">
 
-                    @foreach(var test in Section.Tests)
+                    @foreach (var test in Section.Tests)
                     {
-                        <li class="list-group-item test">
+                        <li class="list-group-item">
 
                             @Html.Partial(test.View, test)
 
@@ -93,4 +78,4 @@
     </ul>
 
 </div>
-
+    

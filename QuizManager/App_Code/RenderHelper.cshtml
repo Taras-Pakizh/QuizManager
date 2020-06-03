@@ -3,7 +3,7 @@
 {
     <a href="@url" type="button" class="btn btn-default btn-circle btn-xl">
 
-        <i class="fa fa-plus fa-2x"></i>
+        <i class="fa fa-plus fa-lg"></i>
 
     </a>
 }
@@ -22,6 +22,28 @@
     <button type="button" class="@_class btn btn-default btn-circle">
 
         <i class="fa fa-arrow-down"></i>
+
+    </button>
+}
+
+@helper InfoButton(string info)
+{
+    <button type="button" data-toggle="tooltip" data-placement="right"
+            title="@info"
+            class="btn btn-info questionwell btn-circle">
+
+        <i class="fa fa-xs"><strong>i</strong></i>
+
+    </button>
+}
+
+@helper InfoButtonMyColor(string info, string _class = "")
+{
+    <button type="button" data-toggle="tooltip" data-placement="right"
+            title="@info"
+            class="btn btn-info mycolor btn-circle @_class">
+
+        <i class="fa fa-xs"><strong>i</strong></i>
 
     </button>
 }
@@ -52,7 +74,11 @@
         {
             if (selected == item.Key)
             {
-                <li class="active"><a href="@item.Value">@item.Key</a></li>
+                <li class="active">
+                    <a href="@item.Value">
+                        @item.Key
+                    </a>
+                </li>
             }
             else
             {
@@ -65,20 +91,20 @@
 
 @helper Back(string url)
 {
-    <a href="@url" type="button" class="btn btn-default">
+    <a href="@url" type="button" class="btn btn-warning mycolor">
 
-        <i class="fa fa-arrow-left fa-2x"></i>
+        <i class="fa fa-arrow-left fa-lg"></i>
 
     </a>
 }
 
-@helper ActionWithParameter(string url, string id, string text, string _class) 
-{ 
+@helper ActionWithParameter(string url, string id, string text, string _class)
+{
     {
         url = url + "?id=" + id;
     }
 
-    <a href="@url" type="button" class="btn btn-default @_class">
+    <a href="@url" type="button" class="btn btn-info mycolor @_class">
         @text
     </a>
 }
@@ -106,3 +132,50 @@
         <input type="checkbox" name="@Name" value="@value" />
     }
 }
+
+@helper CheckBoxSimpleDisabled(bool IsChecked)
+{
+    if (IsChecked)
+    {
+        <input type="checkbox" checked="checked" disabled />
+    }
+    else
+    {
+        <input type="checkbox" disabled />
+    }
+}
+
+@helper CreateSquere(string QuizName, int Id,
+    IEnumerable<string> Names, IEnumerable<string> Links)
+{
+    <div class="dropdown">
+
+        <button data-toggle="dropdown"
+                class="dropdown-toggle btn-squared-default-plain:hover btn-squared-default">
+            <p class="module">
+                @QuizName
+            </p>
+        </button>
+
+        <ul class="dropdown-menu">
+
+            @foreach (var item in Names.Zip(Links, (name, link) =>
+                new
+                {
+                    Name = name,
+                    Link = link
+                }
+            ))
+            {
+                var href = item.Link + "?id=" + Id;
+
+                <li>
+                    <a href="@href">@item.Name</a>
+                </li>
+            }
+
+        </ul>
+
+    </div>
+}
+

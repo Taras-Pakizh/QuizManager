@@ -6,21 +6,21 @@ using System.Web;
 
 namespace QuizManager.Helpers.Models
 {
-    public class PollMatchingRedactorView : RedactorView
+    public class TestTextInputRedactorView : RedactorView
     {
-        public XmlPollMatching _XmlModel { get; set; }
+        public XmlTextInput _XmlModel { get; set; }
 
-        public override XmlBase Model
-        {
+        public override XmlBase Model 
+        { 
             get { return _XmlModel; }
             set
             {
-                if (value is XmlPollMatching)
+                if (value is XmlTextInput)
                 {
-                    _XmlModel = value as XmlPollMatching;
+                    _XmlModel = value as XmlTextInput;
                 }
                 else { throw new Exception(this.GetType().Name + ": incorrect type"); }
-            }
+            } 
         }
     }
 }

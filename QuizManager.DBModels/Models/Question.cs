@@ -22,6 +22,11 @@ namespace QuizManager.DBModels
 
         public QuestionObligation Obligation { get; set; }
 
+        [DataType(DataType.Time)]
+        public TimeSpan? TimeLimit { get; set; }
+
+        public int? Difficulty { get; set; }
+
         public int OrderNumber { get; set; }
 
         public string Text { get; set; }

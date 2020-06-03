@@ -3,22 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using System.Web.Mvc;
 
 namespace QuizManager.Helpers.Models
 {
-    public class PollListRedactorView : RedactorView
+    public class TestOrderRedactorView : RedactorView
     {
-        public XmlPollList _XmlModel { get; set; }
+        public XmlOrder _XmlModel { get; set; }
 
         public override XmlBase Model 
         {
-            get { return _XmlModel; } 
+            get { return _XmlModel; }
             set
             {
-                if(value is XmlPollList)
+                if (value is XmlOrder)
                 {
-                    _XmlModel = value as XmlPollList;
+                    _XmlModel = value as XmlOrder;
                 }
                 else { throw new Exception(this.GetType().Name + ": incorrect type"); }
             }

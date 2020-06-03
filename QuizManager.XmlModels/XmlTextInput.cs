@@ -7,15 +7,24 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlText : XmlBase, IXmlTask, IAnswerName
+    public class XmlTextInput : XmlBase, IXmlTask, IAnswerName
     {
         public string Text { get; set; }
 
+        public string Input { get; set; }
+
+        public string Comment { get; set; }
+
         public double Compare(XmlBase answer, double Value)
         {
-            var _answer = answer as XmlTextAnswer;
+            var _answer = answer as XmlTextInputAnswer;
 
-            if (Text == _answer.Answer)
+            if(_answer == null)
+            {
+                throw new Exception("Wrong answer type");
+            }
+
+            if(Input == _answer.Answer)
             {
                 return Value;
             }
@@ -25,7 +34,7 @@ namespace QuizManager.XmlModels
 
         public string GetTypeName()
         {
-            return (typeof(XmlTextAnswer)).Name;
+            return (typeof(XmlTextInputAnswer)).Name;
         }
     }
 }

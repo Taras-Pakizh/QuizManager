@@ -6,117 +6,174 @@
     ViewBag.Title = "GetLink";
 }
 
-<br />
+<div class="row well mywell">
+    
+    <div class="pull-left myhmargin">
+        @RenderHelper.Back(Url.Action("Index", "Cabinet"))
+    </div>
 
-    <div class="container">
+    <div class="pull-left myhmargin">
+        <h4>Quiz:<strong>@Model.Quiz.Name</strong></h4>
+    </div>
 
-        <div class="container">
+</div>
 
-            @Html.Partial("TableByProperty", new TableView()
-            {
-                data = new List<Quiz>() { Model.Quiz },
-                PropertyNames = new List<string>()
-                {
-                    "Name", "Type", "TimeLimit", "UserData", "Value"
-                },
-                HeaderNames = new List<string>()
-                {
-                    "Name", "Type", "Time limit", "Authorization type", "Highest mark"
-                }
-            })
+<div class="myhmargin">
 
-        </div>
-
-        @if (!Model.IsQuizValid)
+    @Html.Partial("TableByProperty", new TableView()
+    {
+        data = new List<Quiz>() { Model.Quiz },
+        PropertyNames = new List<string>()
         {
-            <div class="container form-group">
+            "Name", "Type", "TimeLimit", "UserData", "Value", "TimeLimitType"
+        },
+        HeaderNames = new List<string>()
+        {
+            "Name", "Type", "Time limit", "Authorization type", "Highest mark", "Time limit type"
+        }
+    })
 
-                <div class="form-group">
+    @if (!Model.IsQuizValid)
+    {
+        <div class="form-group">
 
-                    <strong>This quiz is not finished</strong>
+            <div class="form-group">
 
-                </div>
-
-                <div id="errors" class="form-group">
-
-                    @foreach (var error in Model.Errors)
-                    {
-                        <div class="alert alert-danger">
-                            @error
-                        </div>
-                    }
-
-                </div>
+                <strong>This quiz is not finished</strong>
 
             </div>
-        }
-        else
-        {
-            if (Model.IsRefExists)
-            {
-                <div class="container form-inline">
 
-                    <label>Exist link: </label>
+            <div id="errors" class="form-group">
 
-                    <input id="link" style="width:2000px;" type="text" value="@Model.Link" class="form-control" />
-
-                    <button type="button" class="copy-link btn btn-default">Copy Link</button>
-
-                </div>
-            }
-
-            <br />
-
-            <div class="container form-inline">
-
-                <div class="form-group">
-                    @using (Html.BeginForm("GetLink", "Cabinet", FormMethod.Get))
-                    {
-                        <input type="hidden" value="@Model.Quiz.Id" name="id" />
-                        <input type="submit" class="btn btn-default" value="Generate link" />
-                    }
-                </div>
-
-                @if (Model.IsRefExists)
+                @foreach (var error in Model.Errors)
                 {
-                    <div class="form-group">
-                        @using (Html.BeginForm("DeleteLink", "Cabinet", FormMethod.Get))
-                        {
-                            <input type="hidden" name="Id" value="@Model.Reference.Id" />
-                            <input type="submit" class="btn btn-danger" value="Delete link" />
-                        }
+                    <div class="alert alert-danger">
+                        @error
                     </div>
                 }
 
             </div>
 
+        </div>
+    }
+    else
+    {
+        if (Model.IsRefExists)
+        {
+            <div class="form-inline myhmargin">
+
+                <label>Exist link: </label>
+
+                <input id="link" type="text" value="@Model.Link" class="form-control" />
+
+                <button type="button" class="copy-link btn btn-info mycolor">Copy Link</button>
+
+            </div>
         }
 
         <br />
 
-        <div class="container form-group">
+        <div class="myhmargin">
 
-            @RenderHelper.Back(Url.Action("Index", "Cabinet"))
+            <div class="form-group form-inline">
+                @using (Html.BeginForm("GetLink", "Cabinet", FormMethod.Post))
+                {
+                    @Html.HiddenFor(x=>x.Quiz.Id)
+                    
+                    <div class="form-group">
+                        @Html.TextBoxFor(x=>x.Reference.AttemptCount, 
+                            new { @class="form-control", type="number", id="count" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.EnumDropDownListFor(x=>x.Reference.Type, 
+                            new { @class="form-control", id="enum" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.TextBoxFor(x=>x.Reference.Deadline, "{0:yyyy-MM-ddTHH:mm}",
+                            new { @class = "form-control", type = "datetime-local", required="required" })
+                    </div>
+
+                    <input type="submit" class="btn btn-info mycolor" value="Generate link" />
+                }
+            </div>
+
+            @if (Model.IsRefExists)
+            {
+                <div class="form-group">
+                    @using (Html.BeginForm("DeleteLink", "Cabinet", FormMethod.Get))
+                    {
+                        <input type="hidden" name="Id" value="@Model.Reference.Id" />
+                        <input type="submit" class="btn btn-danger mycolor" value="Delete link" />
+                    }
+                </div>
+            }
 
         </div>
 
-    </div>
+    }
+
+</div>
+
+
 
 
 @section scripts
 {
     <script>
 
-        $(document).on('click', 'button.copy-link', function () {
+        var first = true;
 
-            var link = document.getElementById('link');
+        $(document).ready(function () {
 
-            link.select();
-            link.setSelectionRange(0, 99999);
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
 
-            document.execCommand("copy");
+                var val = enumList.value;
 
-            alert("Link is copied to clipboard: " + link.value);
+                var count = document.getElementById('count');
+
+                if (val == 0) {
+                    //byreference
+                    count.setAttribute('min', 0);
+                    if (!first) {
+                        count.value = 0;
+                    }
+                    count.setAttribute('disabled', 'disabled');
+                }
+
+                if (val == 1) {
+                    //bygroup
+                    count.setAttribute('min', 1);
+                    if (!first) {
+                        count.value = 1;
+                    }
+                    count.disabled = false;
+                }
+
+                first = false;
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+            $(document).on('click', 'button.copy-link', function () {
+
+                var link = document.getElementById('link');
+
+                link.select();
+                link.setSelectionRange(0, 99999);
+
+                document.execCommand("copy");
+
+                alert("Link is copied to clipboard: " + link.value);
+
+            });
 
         });
 

@@ -33,36 +33,11 @@ namespace QuizManager.Helpers
             list.Add(item);
         }
 
-        public static bool Validate(XmlPollList model)
+        public static List<T> Shuffle<T>(this List<T> list)
         {
-            IsValid = true;
+            var r = new Random();
 
-            if(model.ListType == null)
-            {
-                ErrorList.AddError("ListType isn't initialized");
-            }
-
-            if(model.Options == null || model.Options.Count == 0)
-            {
-                ErrorList.AddError("Options isn't initialized");
-            }
-
-            if(model.Options.Any(x=>x.Text == null || x.Text == ""))
-            {
-                ErrorList.AddError("Some Options are not initialized");
-            }
-
-            if (!IsValid)
-            {
-                return false;
-            }
-
-            //for(int i = 0; i < model.Options.Count; ++i)
-            //{
-            //    model.Options[i].Id = i + 1;
-            //}
-
-            return true;
+            return list.OrderBy(x => r.Next()).ToList();
         }
 
         public static bool Validate(XmlTestList model)
@@ -78,23 +53,86 @@ namespace QuizManager.Helpers
             {
                 ErrorList.AddError("Options isn't initialized");
             }
+            else
+            {
+                if (!model.Options.Any(x => x.IsTrue))
+                {
+                    ErrorList.AddError("Should be at least 1 correct option");
+                }
+
+                if (model.Options.Any(x => x.Text == null || x.Text == ""))
+                {
+                    ErrorList.AddError("Some Options are not initialized");
+                }
+            }
+
+            return IsValid;
+        }
+
+        public static bool Validate(XmlOrder model)
+        {
+            IsValid = true;
+
+            if(model.Options == null || 
+                model.Options.Count() == 0 || 
+                model.Options.Count() < 2)
+            {
+                ErrorList.AddError("Should be at least 2 options to order");
+            }
+            else
+            {
+                if(model.Options.Any(x=>x.Text == null || x.Text == ""))
+                {
+                    ErrorList.AddError("Some Options are not initialized");
+                }
+            }
+
+            return IsValid;
+        }
+
+        public static bool Validate(XmlMatching model)
+        {
+            IsValid = true;
+
+            if (model.MatchingType == null)
+            {
+                ErrorList.AddError("MatchingType isn't initialized");
+            }
+
+            if (model.Rows == null || model.Rows.Count == 0 ||
+                model.Columns == null || model.Columns.Count == 0)
+            {
+                ErrorList.AddError("Should be at least 1 row and 1 column");
+            }
+            else
+            {
+                if (model.MatchingType == XmlMatchingType.Multy && 
+                    model.Answers.Count < model.Rows.Count)
+                {
+                    ErrorList.AddError("Not correct count of answers");
+                }
+
+                if(model.MatchingType == XmlMatchingType.Single && 
+                    model.Rows.Count > model.Columns.Count)
+                {
+                    ErrorList.AddError("Not correct count of options");
+                }
+            }
+
+            return IsValid;
+        }
+
+        public static bool Validate(XmlTextInput model)
+        {
+            IsValid = true;
+
+            if(model.Text == null || model.Input == null ||
+                model.Text == "" || model.Input == "")
+            {
+                ErrorList.AddError("Question is not initialized");
+            }
             
-            if (!model.Options.Any(x => x.IsTrue))
-            {
-                ErrorList.AddError("Should be at least 1 correct option");
-            }
-
-            if (model.Options.Any(x => x.Text == null || x.Text == ""))
-            {
-                ErrorList.AddError("Some Options are not initialized");
-            }
-
-            if (!IsValid)
-            {
-                return false;
-            }
-
-            return true;
+            return IsValid;
         }
     }
 }

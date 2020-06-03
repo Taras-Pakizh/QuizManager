@@ -1,0 +1,73 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model AttempTestView
+
+@{
+    var XmlQuestion = Model.Model as XmlOrder;
+
+    var XmlAnswer = Model.XmlAnswer as XmlMultyAnswer;
+}
+
+<div class="well questionwell">
+
+    <h4>Question:<strong>@Model.Question.Text</strong></h4>
+    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+
+</div>
+
+<ul class="list-group">
+
+    @for (int i = 0; i < XmlAnswer.Answer.Length; ++i)
+    {
+        var answerOption = XmlQuestion.Options.
+            Single(x => x.Id == XmlAnswer.Answer[i]);
+
+        var trueOption = XmlQuestion.Options[i];
+
+        var index = XmlQuestion.Options.
+            FindIndex(x => x.Id == answerOption.Id) + 1;
+
+        <li class="list-group-item">
+
+            @if (trueOption.Id == answerOption.Id)
+            {
+                <div class="alert alert-success">
+                    <div class="form-inline">
+                        <h4>
+                            @answerOption.Text
+                            <div class="pull-right">
+                                <strong>Correct answer</strong>
+                            </div>
+                        </h4>
+                    </div>
+                    <h4>
+                        <strong>Comment: </strong>
+                        <span>@answerOption.Comment</span>
+                    </h4>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <div class="form-inline">
+                        <h4>
+                            @answerOption.Text
+                            <div class="pull-right">
+                                <strong>Wrong, correct order: @index</strong>
+                            </div>
+                        </h4>
+                    </div>
+                    <h4>
+                        <strong>Comment: </strong>
+                        <span>@answerOption.Comment</span>
+                    </h4>
+                </div>
+            }
+
+        </li>
+    }
+
+</ul>

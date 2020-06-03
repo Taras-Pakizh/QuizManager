@@ -1,7 +1,27 @@
-﻿
-@{
-    ViewBag.Title = "Delete";
-}
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model Group
 
-<h2>Delete</h2>
+<br />
+
+<div class="mycenter">
+
+    <div class="form-group">
+        @Html.Label("Group name:")
+        @Html.TextBoxFor(x => x.Name, new { @class = "form-control", disabled = "disabled" })
+    </div>
+
+    @using (Html.BeginForm("Delete", "Group", FormMethod.Post))
+    {
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-danger mycolor" value="Delete" />
+        </div>
+    }
+
+</div>
+
+
 

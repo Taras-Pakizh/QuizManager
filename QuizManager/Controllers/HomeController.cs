@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuizManager.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,9 +9,18 @@ namespace QuizManager.Controllers
 {
     public class HomeController : Controller
     {
+        [Authorize]
         public ActionResult Index()
         {
-            return View();
+            if (User.IsInRole(Role.Admin.ToString()))
+            {
+                return RedirectToAction("Index", "Cabinet");
+            }
+            else if (User.IsInRole(Role.Student.ToString()))
+            {
+                return RedirectToAction("OpenedGroups", "Group");
+            }
+            return RedirectToAction("Register", "Account");
         }
 
         public ActionResult About()

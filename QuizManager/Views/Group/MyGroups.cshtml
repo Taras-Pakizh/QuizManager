@@ -4,38 +4,42 @@
 @model IEnumerable<Group>
 @{
     string SelectedTab = "My Groups";
+
+    var data = (IEnumerable<SquereData>)ViewBag.QuizData;
 }
 
-<div class="container">
+<br />
 
-    <h2>MyGroups</h2>
+<div class="row">
 
-    <div class="row">
+    <div class="col-sm-4">
 
         @Html.Partial("CabinetPage", SelectedTab)
 
-        <div class="container col-sm-8">
+    </div>
 
-            <ul class="list-inline">
+    <div class="col-sm-8">
 
-                @foreach (var group in Model)
-                {
-                    <li style="margin:10px;">
+        <a href="@Url.Action("AddGroup", "Group")"
+           type="button" class="btn btn-info btn-lg btn-block myButton">
+            CREATE GROUP
+        </a>
 
-                        @Html.CreateSquere(group.Name, group.Id, (IEnumerable<SquereData>)ViewBag.QuizData)
+        <hr class="myhr" />
 
-                    </li>
-                }
+        <ul class="list-inline list-scroll">
 
-            </ul>
+            @foreach (var group in Model)
+            {
+                <li style="margin:10px;">
 
-            <div class="pull-right">
+                    @RenderHelper.CreateSquere(group.Name, group.Id,
+                        data.Select(x => x.Name).ToList(), data.Select(x => x.Link).ToList())
 
-                @RenderHelper.PlusButton(Url.Action("CreateGroup", "Group"))
+                </li>
+            }
 
-            </div>
-
-        </div>
+        </ul>
 
     </div>
 

@@ -24,32 +24,41 @@ namespace QuizManager.Helpers.Models
             get { return this.GetType().Name; }
         }
 
-
-
-
-        private static readonly List<TypeDescriber> _Describers = new List<TypeDescriber>()
+        private static readonly Dictionary<List<QuestionType>, Type> _Describers = new Dictionary<List<QuestionType>, Type>()
         {
-            new TypeDescriber()
             {
-                Names = new List<QuestionType>()
+                new List<QuestionType>()
                 {
-                    QuestionType.Radio, 
-                    QuestionType.Checkbox, 
-                    QuestionType.ComboBox 
-                },
-                Types = new Dictionary<QuizType, Type>()
-                {
-                    {QuizType.Poll, typeof(PollListRedactorView)},
-                    {QuizType.Test, typeof(TestListRedactorView)},
-                }
+                    QuestionType.Radio,
+                    QuestionType.Checkbox,
+                    QuestionType.ComboBox
+                }, typeof(TestListRedactorView)
             },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.Order
+                }, typeof(TestOrderRedactorView)
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.MatchingSingle,
+                    QuestionType.MatchingMulty
+                }, typeof(TestMatchingRedactorView)
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.TextInput
+                }, typeof(TestTextInputRedactorView)
+            }
         };
 
-        public static RedactorView GetView(QuestionType questionType, QuizType quizType)
+        public static RedactorView GetView(QuestionType questionType)
         {
-            var decriber = _Describers.Single(x => x.Names.Contains(questionType));
-
-            var type = decriber.Types[quizType];
+            var type = _Describers.Single(x => x.Key.
+                Contains(questionType)).Value;
 
             return Activator.CreateInstance(type) as RedactorView;
         }

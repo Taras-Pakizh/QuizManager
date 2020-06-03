@@ -9,14 +9,6 @@ namespace QuizManager.XmlModels
     [Serializable]
     public class XmlMatchingSingleAnswer : XmlAnswer<int[]>
     {
-        public List<XmlSingleAnswer> Answers
-        {
-            get
-            {
-                return Answer.Select(x => new XmlSingleAnswer() { Answer = x }).ToList();
-            }
-        }
-
         public override bool IsValid()
         {
             if(Answer == null)
@@ -28,9 +20,6 @@ namespace QuizManager.XmlModels
 
         public override void ParseAnswer(List<string> values)
         {
-            //Need default values because - some answer is init other not - 
-            //and they shuffling
-
             if(values == null)
             {
                 return;

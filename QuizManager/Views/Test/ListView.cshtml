@@ -39,9 +39,22 @@
 
 @Html.Hidden(qPath, Model.Question.Id)
 
-<div class="well">
+<div class="well questionwell">
 
-    <label>@Model.Question.Text</label>
+    <div class="pull-right myhmargin">
+
+        @if (Model.Question.Type == QuestionType.Checkbox)
+        {
+            @RenderHelper.InfoButton("Select 1 or more options")
+        }
+        else
+        {
+            @RenderHelper.InfoButton("Select only 1 option")
+        }
+
+    </div>
+
+    <h4>@Model.Question.Text</h4>
 
 </div>
 
@@ -78,20 +91,20 @@ else
             <li class="list-group-item">
                 @if (ListType == XmlQuestionType.Radio)
                 {
-                    <div class="radio">
-                        <label>
+                    <div class="radio myboxmargin">
+                        <span>
                             @Html.RadioButton(nPath, item.Id, isChecked)
-                            @item.Text
-                        </label>
+                            <h4>@item.Text</h4>
+                        </span>
                     </div>
                 }
                 else if (ListType == XmlQuestionType.Checkbox)
                 {
-                    <div class="checkbox">
-                        <label>
+                    <div class="checkbox myboxmargin">
+                        <span>
                             @RenderHelper.CheckBoxSimple(nPath, isChecked, item.Id.ToString())
-                            @item.Text
-                        </label>
+                            <h4>@item.Text</h4>
+                        </span>
                     </div>
                 }
             </li>

@@ -1,0 +1,91 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model AttempTestView
+
+@{
+    var XmlQuestion = Model.Model as XmlMatching;
+
+    var XmlAnswer = Model.XmlAnswer as XmlMatchingMultyAnswer;
+
+
+}
+
+<div class="well questionwell">
+
+    <h4>Question:<strong>@Model.Question.Text</strong></h4>
+    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+
+</div>
+
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th></th>
+            @foreach (var item in XmlQuestion.Columns)
+            {
+                <th>
+                    <h4>@item.Text</h4>
+                </th>
+            }
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var row in XmlQuestion.Rows)
+        {
+            <tr>
+                <td>
+                    <h4>@row.Text</h4>
+                    <h4>
+                        <strong>Comment:</strong>
+                        <span>@row.Comment</span>
+                    </h4>
+                </td>
+                @foreach (var col in XmlQuestion.Columns)
+                {
+                    if (XmlAnswer.Answer.Any(x => x.Key == row.Id && x.Value == col.Id))
+                    {
+                        if (XmlQuestion.Answers.Any(x => x.Key == row.Id && x.Value == col.Id))
+                        {
+                            <td>
+                                <div class="alert alert-success">
+                                    @RenderHelper.CheckBoxSimpleDisabled(true)
+                                </div>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <div class="alert alert-danger">
+                                    @RenderHelper.CheckBoxSimpleDisabled(true)
+                                </div>
+                            </td>
+                        }
+                    }
+                    else
+                    {
+                        if (XmlQuestion.Answers.Any(x => x.Key == row.Id && x.Value == col.Id))
+                        {
+                            <td>
+                                <div class="alert alert-danger">
+                                    @RenderHelper.CheckBoxSimpleDisabled(false)
+                                </div>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @RenderHelper.CheckBoxSimpleDisabled(false)
+                            </td>
+                        }
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+
+</table>

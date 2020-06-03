@@ -19,7 +19,9 @@ namespace QuizManager.DBModels
 
         public QuizType Type { get; set; }
 
-        public UserDataType UserData { get; set; }
+        public QuizTimeLimitType TimeLimitType { get; set; }
+
+        public QuizTestingType TestingType { get; set; }
 
         [DataType(DataType.Time)]
         public TimeSpan? TimeLimit { get; set; }

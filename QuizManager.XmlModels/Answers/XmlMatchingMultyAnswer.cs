@@ -7,19 +7,8 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlMatchingMultyAnswer : XmlAnswer<int[][]>
+    public class XmlMatchingMultyAnswer : XmlAnswer<List<XmlKeyValuePair<int, int>>>
     {
-        public List<XmlMultyAnswer> Answers
-        {
-            get
-            {
-                return Answer.Select(x => new XmlMultyAnswer() 
-                {
-                    Answer = x 
-                }).ToList();
-            }
-        }
-
         public override bool IsValid()
         {
             if(Answer == null)
@@ -29,9 +18,7 @@ namespace QuizManager.XmlModels
             return true;
         }
 
-        /// <summary>
-        /// if next val is equal or samller than previous, next question
-        /// </summary>
+        //pair of values (RowId_ColId)
         public override void ParseAnswer(List<string> values)
         {
             if(values == null)
@@ -39,26 +26,21 @@ namespace QuizManager.XmlModels
                 return;
             }
 
-            var result = new List<List<int>>();
-            result.Add(new List<int>());
-
+            var result = new List<XmlKeyValuePair<int, int>>();
+            
             foreach(var item in values)
             {
-                if(Int32.TryParse(item, out int val))
-                {
-                    if(result.Last().Count != 0 && result.Last().Last() >= val)
-                    {
-                        result.Add(new List<int>());
-                    }
-                    result.Last().Add(val);
-                }
-                else
-                {
-                    throw new InvalidCastException();
-                }
+                var ids = item.Split(new char[] { '_' });
+
+                result.Add(
+                    new XmlKeyValuePair<int, int>(
+                        Int32.Parse(ids[0]),
+                        Int32.Parse(ids[1])
+                    )
+                );
             }
 
-            Answer = result.Select(x => x.ToArray()).ToArray();
+            Answer = result;
         }
     }
 }

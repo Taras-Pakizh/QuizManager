@@ -1,0 +1,79 @@
+﻿@using QuizManager.ModelViews;
+@model TableWithModelView
+
+@{ 
+    int index = 0;
+}
+
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            @foreach (var item in Model.HeaderNames)
+            {
+                <th>@item</th>
+            }
+            @if (Model.Ids != null)
+            {
+                foreach (var item in Model.Ids)
+                {
+                    <th></th>
+                }
+            }
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var row in Model.data)
+        {
+            <tr>
+                @foreach (var property in Model.PropertyNames)
+                {
+                    <td>
+                        @row.GetType().GetProperty(property).GetValue(row)
+                    </td>
+                }
+                @if (Model.Ids != null)
+                {
+                    for(int i = 0; i < Model.ControllerNames.Count; ++i)
+                    {
+                        <td>
+                            <button data-toggle="modal" class="btn btn-default" data-target="#_@i">
+                                @Model.LinkContents[i]
+                            </button>
+                            <div class="modal fade" id="_@i" role="dialog">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Alert</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Submit your action</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            @RenderHelper.ActionWithParameter(
+                                                Url.Action(
+                                                    Model.ActionNames[i], 
+                                                    Model.ControllerNames[i]
+                                                ), 
+                                                Model.Ids[i][index],
+                                                Model.LinkContents[i], ""
+                                            )
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </td>
+                    }
+                }
+            </tr>
+            { 
+                index++;
+            }
+        }
+    </tbody>
+
+</table>
+

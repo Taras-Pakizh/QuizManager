@@ -13,10 +13,12 @@ namespace QuizManager.ModelViews
 
         public QuizType Type { get; set; }
 
-        public UserDataType UserData { get; set; }
+        public QuizTestingType TestingType { get; set; }
 
         public TimeSpan? TimeLimit { get; set; }
 
         public double Value { get; set; }
+
+        public QuizTimeLimitType TimeLimitType { get; set; }
     }
 }

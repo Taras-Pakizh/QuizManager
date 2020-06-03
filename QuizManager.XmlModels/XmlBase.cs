@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
@@ -18,13 +19,18 @@ namespace QuizManager.XmlModels
         {
             using (var memoryStream = new MemoryStream())
             {
-                using (TextWriter streamWriter = new StreamWriter(memoryStream))
+                using (TextWriter streamWriter = new StreamWriter(memoryStream, Encoding.Unicode))
                 {
                     var xmlSerializer = new XmlSerializer(typeof(T));
 
                     xmlSerializer.Serialize(streamWriter, xmlBase);
 
-                    return XElement.Parse(Encoding.ASCII.GetString(memoryStream.ToArray()));
+                    memoryStream.Position = 0;
+
+                    using(XmlReader reader = XmlReader.Create(memoryStream))
+                    {
+                        return XElement.Load(reader);
+                    }
                 }
             }
         }
@@ -68,13 +74,18 @@ namespace QuizManager.XmlModels
         {
             using (var memoryStream = new MemoryStream())
             {
-                using (TextWriter streamWriter = new StreamWriter(memoryStream))
+                using (TextWriter streamWriter = new StreamWriter(memoryStream, Encoding.Unicode))
                 {
                     var xmlSerializer = new XmlSerializer(typeof(T));
 
                     xmlSerializer.Serialize(streamWriter, xmlBase);
 
-                    return XElement.Parse(Encoding.ASCII.GetString(memoryStream.ToArray()));
+                    memoryStream.Position = 0;
+
+                    using (XmlReader reader = XmlReader.Create(memoryStream))
+                    {
+                        return XElement.Load(reader);
+                    }
                 }
             }
         }

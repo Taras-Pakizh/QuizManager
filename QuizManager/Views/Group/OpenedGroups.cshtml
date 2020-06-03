@@ -1,7 +1,50 @@
-﻿
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Models;
+@model IEnumerable<Group>
 @{
-    ViewBag.Title = "OpenedGroups";
+    string SelectedTab = "Opened for me";
+
+    var data = (IEnumerable<SquereData>)ViewBag.QuizData;
 }
 
-<h2>OpenedGroups</h2>
+<br />
+
+<div class="row">
+
+    <div class="col-sm-4">
+
+        @if (User.IsInRole(Role.Admin.ToString()))
+        {
+            @Html.Partial("CabinetPage", SelectedTab)
+        }
+        else if (User.IsInRole(Role.Student.ToString()))
+        {
+            @Html.Partial("StudentCabinetPage", SelectedTab)
+        }
+
+    </div>
+
+    <div class="col-sm-8">
+
+        <ul class="list-inline list-scroll">
+
+            @foreach (var group in Model)
+            {
+                <li style="margin:10px;">
+
+                    @RenderHelper.CreateSquere(group.Name, group.Id,
+                        data.Select(x => x.Name).ToList(), data.Select(x => x.Link).ToList())
+
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+
+</div>
+
 

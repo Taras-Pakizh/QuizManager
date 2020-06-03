@@ -4,12 +4,17 @@
 
 @model SectionView
 
-@using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm" }))
+@using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm", name = "ajaxForm" }))
 {
     int index = 0;
     foreach (var item in Model.Tests)
     {
-        <div class="test">
+        if (index != 0)
+        {
+            <hr class="questionhr" />
+        }
+
+        <div @*class="test"*@>
             @{
                 item.Index = index;
                 ++index;
@@ -18,33 +23,101 @@
         </div>
     }
 
-    <div id="navigation" class="container form-inline text-center">
+    <div class="text-center">
 
-        @Html.HiddenFor(x => x.QuizId)
+        <span id="navigation">
 
-        @Html.HiddenFor(x => x.SectionId)
+            @Html.HiddenFor(x => x.QuizId)
 
-        @if (Model.PrevVisibility)
-        {
-            <div class="form-group">
-                <input type="submit" class="btn btn-default" name="submit" value="Previous" />
-            </div>
-        }
+            @Html.HiddenFor(x => x.SectionId)
 
-        @if (Model.NextVisibility)
-        {
-            <div class="form-group">
-                <input type="submit" class="btn btn-default" name="submit" value="Next" />
-            </div>
-        }
+            @if (Model.PrevVisibility)
+            {
+                <input type="submit" class="btn btn-info mycolor" name="btnSubmit" value="Previous" />
+            }
 
-        @if (Model.IsFinish)
-        {
-            <div class="form-group">
-                <input type="submit" class="btn btn-primary" name="submit" value="Finish" />
-            </div>
+            @if (Model.NextVisibility)
+            {
+                <input type="submit" class="btn btn-info mycolor" name="btnSubmit" value="Next" />
+            }
 
-        }
+            @if (Model.IsFinish)
+            {
+                <input type="submit" class="btn btn-info mycolor" name="btnSubmit" value="Finish" />
+            }
+
+        </span>
 
     </div>
+
+}
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
+    </script>
+}
+
+
+@if (Model.Section.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited &&
+    Model.Section.TimeLimitType == SectionTimeLimitType.Limited)
+{
+    <script>
+
+        var totalSeconds = @Model.Section.TimeLimit.Value.TotalSeconds;
+
+        function TimerValue() {
+
+            var seconds = totalSeconds % 60;
+            var minutes = parseInt(totalSeconds / 60);
+            var hours = parseInt(totalSeconds / 3600);
+
+            return "Time Left: " + TimeFormat(hours) + ":" + TimeFormat(minutes) + ":" + TimeFormat(seconds);
+        }
+
+        function TimeFormat(value) {
+            if (value > 9) {
+                return value.toString();
+            }
+            return "0" + value;
+        }
+
+        function Finish() {
+
+            var submitButton = document.getElementsByName('btnSubmit')[0];
+
+            submitButton.setAttribute('name', '');
+
+            $('#TestsForm').append('<input type="hidden" name="btnSubmit" value="SectionTime" />')
+
+            submitButton.click();
+        }
+
+        function Tick() {
+
+            document.getElementById('timer').innerText = TimerValue();
+
+            var _tick = setInterval(function () {
+
+                totalSeconds--;
+
+                if (totalSeconds == 0) {
+                    alert('Time limit reached');
+                    Finish();
+                    clearInterval(_tick);
+                }
+
+                document.getElementById('timer').innerText = TimerValue();
+
+            }, 1000);
+        }
+
+        Tick();
+
+    </script>
 }

@@ -38,6 +38,30 @@ namespace QuizManager.Helpers
                     QuestionType.Checkbox,
                     QuestionType.ComboBox
                 }, "ListView" 
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.Order
+                }, "OrderView"
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.MatchingSingle,
+                }, "MatchingSingleView"
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.MatchingMulty
+                }, "MatchingMultyView"
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.TextInput
+                }, "TextInputView"
             }
         };
     }

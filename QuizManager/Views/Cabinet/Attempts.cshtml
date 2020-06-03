@@ -1,0 +1,34 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Logic;
+@using QuizManager.Models;
+@model AttemptFilterView
+@{
+    string SelectedTab = "Attemps";
+}
+
+<br />
+
+<div class="row">
+
+    <div class="col-sm-4">
+
+        @if (User.IsInRole(Role.Admin.ToString()))
+        {
+            @Html.Partial("CabinetPage", SelectedTab)
+        }
+        else if (User.IsInRole(Role.Student.ToString()))
+        {
+            @Html.Partial("StudentCabinetPage", SelectedTab)
+        }
+
+    </div>
+
+    <div class="col-sm-8" id="attemptTable">
+
+        @Html.Partial("FilterAttempts", Model)
+
+    </div>
+
+</div>

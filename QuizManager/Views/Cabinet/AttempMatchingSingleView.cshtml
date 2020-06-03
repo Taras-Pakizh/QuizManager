@@ -1,0 +1,108 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model AttempTestView
+
+@{
+    var XmlQuestion = Model.Model as XmlMatching;
+
+    var XmlAnswer = Model.XmlAnswer as XmlMatchingSingleAnswer;
+
+    int i = 0;
+
+    var AnswerColumns = XmlAnswer.Answer.
+        Select(x => new 
+        {
+            Column = XmlQuestion.Columns.Single(y => y.Id == x),
+            Index = i++
+        }).
+        ToList();
+}
+
+<div class="well questionwell">
+
+    <h4>Question:<strong>@Model.Question.Text</strong></h4>
+    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+
+</div>
+
+<div class="row">
+
+    <div class="col-sm-6">
+
+        <ul class="list-group">
+
+            @foreach(var row in XmlQuestion.Rows)
+            {
+                <li class="list-group-item">
+
+                    <h4>@row.Text</h4>
+                    
+                    <h4>
+                        <strong>Comment:</strong>
+                        <span>@row.Comment</span>
+                    </h4>
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+
+    <div class="col-sm-6">
+
+        <ul class="list-group">
+
+            @foreach(var item in AnswerColumns)
+            {
+                <li class="list-group-item">
+
+                    @if(XmlQuestion.Rows.Count > item.Index && 
+                        XmlQuestion.Answers.
+                            Any(x=>x.Key == XmlQuestion.Rows[item.Index].Id &&
+                                x.Value == item.Column.Id)
+                    )
+                    {
+                        <div class="alert alert-success form-inline">
+                            <h4>
+                                @item.Column.Text
+                                <div class="pull-right">
+                                    <strong>Correct answer</strong>
+                                </div>
+                            </h4>
+                        </div>
+                    }
+                    else if(XmlQuestion.Answers.Any(x=>x.Value == item.Column.Id))
+                    {
+                        <div class="alert alert-danger form-inline">
+                            <h4>
+                                @item.Column.Text
+                                <div class="pull-right">
+                                    <span>
+                                        <strong>Wrong, correct answer: </strong>
+                                        <span>
+                                            @XmlQuestion.Rows.Single(y => y.Id == XmlQuestion.Answers.Single(x => x.Value == item.Column.Id).Key).Text
+                                    </span>
+                                </span>
+                            </div>
+                            </h4>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert form-inline">
+                            <h4>@item.Column.Text</h4>
+                        </div>
+                    }
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+
+</div>

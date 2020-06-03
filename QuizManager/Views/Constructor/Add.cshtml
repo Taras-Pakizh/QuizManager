@@ -1,31 +1,107 @@
 ﻿@using QuizManager.ModelViews;
+@using QuizManager.Helpers;
+@using QuizManager.DBModels;
 @{
     ViewBag.Title = "Add";
 }
 @model QuizView
 
-<h2>Add</h2>
+<div class="mycenter">
 
-<div class="container">
+    <h2>Create Quiz</h2>
 
     @using (Html.BeginForm("Add", "Constructor", FormMethod.Post))
     {
-        @Html.LabelFor(x=>x.Name)
-        @Html.TextBoxFor(x => x.Name)
+        <div class="form-group">
+            @Html.LabelFor(x => x.Name)
+            @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
+        </div>
 
-        @Html.LabelFor(x=>x.Type)
-        @Html.EnumDropDownListFor(x=>x.Type)
+        <div class="form-group">
+            @Html.LabelFor(x => x.Type)
+            @Html.DropDownListFor(x => x.Type, Html.GetSelectList(typeof(QuizType)), new { @class = "form-control" })
+        </div>
 
-        @Html.LabelFor(x=>x.UserData)
-        @Html.EnumDropDownListFor(x=>x.UserData)
+        <div class="form-group">
+            @Html.Label("Highest mark:")
+            @Html.TextBoxFor(x => x.Value, new { type = "number", min = "0.01", step = "0.01", @class = "form-control" })
+        </div>
 
-        @Html.Label("Highest mark:")
-        @Html.TextBoxFor(x=>x.Value, new {type="number", min="0.01", step="0.01"})
+        <div class="form-group">
+            @Html.Label("Time limit type:")
+            @Html.DropDownListFor(x => x.TimeLimitType, Html.GetSelectList(typeof(QuizTimeLimitType)), new { @class = "form-control", id = "enum" })
+        </div>
 
-        @Html.LabelFor(x=>x.TimeLimit)
-        @Html.TextBoxFor(x=>x.TimeLimit, new { type = "time"})
+        <div class="form-group">
+            @Html.Label("Testing type:")
+            @Html.DropDownListFor(x => x.TestingType, Html.GetSelectList(typeof(QuizTestingType)), new { @class = "form-control", id = "testingtype" })
+        </div>
 
-        <input type="submit" class="btn btn-success" value="Add" />
+        <div class="form-group">
+            @Html.LabelFor(x => x.TimeLimit)
+            @Html.TextBoxFor(x => x.TimeLimit, new { type = "time", @class = "form-control", id = "timelimit" })
+        </div>
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-info mycolor" value="Add" />
+        </div>
     }
 
 </div>
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
+
+                var val = enumList.value;
+
+                var timelimit = document.getElementById('timelimit');
+
+                var testingtype = document.getElementById('testingtype');
+
+                if (val == "Limited") {
+                    timelimit.disabled = false;
+                    timelimit.required = false;
+
+                    testingtype.disabled = false;
+                }
+                else if (val == "SectionLimited") {
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.setAttribute('disabled', 'disabled');
+                    testingtype.value = "PerSection";
+                }
+                else if (val == "QuestionLimited") {
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.setAttribute('disabled', 'disabled');
+                    testingtype.value = "PerQuestion";
+                }
+                else {
+                    //NonLimited
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.disabled = false;
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}
+

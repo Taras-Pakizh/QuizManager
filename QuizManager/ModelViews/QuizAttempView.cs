@@ -52,7 +52,29 @@ namespace QuizManager.ModelViews
                     QuestionType.Checkbox,
                     QuestionType.ComboBox
                 }, "AttempListView"
-            }
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.MatchingSingle
+                }, "AttempMatchingSingleView"
+            },
+            {
+                new List<QuestionType>()
+                {
+                    QuestionType.MatchingMulty
+                }, "AttempMatchingMultyView"
+            },{
+                new List<QuestionType>()
+                {
+                    QuestionType.Order
+                }, "AttempOrderView"
+            },{
+                new List<QuestionType>()
+                {
+                    QuestionType.TextInput
+                }, "AttempTextInput"
+            },
         };
     }
 }

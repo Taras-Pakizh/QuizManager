@@ -3,42 +3,51 @@
 @using QuizManager.ModelViews;
 @model Quiz
 
-<br />
+<div class="row well mywell">
 
-<div class="container">
+    @using (Html.BeginForm("Test", "Test", FormMethod.Post))
+    {
+        @Html.HiddenFor(x => x.Id)
 
-    <div class="container">
-
-        @Html.Partial("TableByProperty", new TableView()
-        {
-            data = new List<Quiz>() { Model },
-            PropertyNames = new List<string>()
-            {
-                "Name", "Type", "TimeLimit", "UserData", "Value"
-            },
-            HeaderNames = new List<string>()
-            {
-                "Name", "Type", "Time limit", "Authorization type", "Highest mark"
-            }
-        })
-
-    </div>
-
-    <div id="submit">
-
-        @using (Html.BeginForm("Test", "Test", FormMethod.Post))
-        {
-            @Html.HiddenFor(x => x.Id)
-
-            <div class="form-group">
-
-                <label for="sub">Do you want to start quiz?</label>
-                <input type="submit" id="sub" class="btn btn-default" value="Start Quiz" />
-            </div>
-        }
-
-    </div>
-
-    <h5>Input description for every type of quiz!!!</h5>
+        <input type="submit" id="sub" class="btn btn-info mycolor btn-block" value="Start quiz" />
+    }
 
 </div>
+
+<div class="myhmargin">
+
+    @Html.Partial("TableByProperty", new TableView()
+    {
+        data = new List<Quiz>() { Model },
+        PropertyNames = new List<string>()
+        {
+            "Name", "Type", "TimeLimit", "Value", "TimeLimitType"
+        },
+        HeaderNames = new List<string>()
+        {
+            "Name", "Type", "Time limit", "Highest mark", "Time limit type"
+        }
+    })
+
+</div>
+
+<div class="myhmargin">
+
+    @if (Model.Type == QuizType.Adaptive)
+    {
+        <h3>
+            Adaptive testing:
+        </h3>
+
+        <span>
+            Testing, the result of which is level of knowledge
+            of person (the highest difficulty problem solved)
+        </span>
+    }
+
+</div>
+
+
+
+
+

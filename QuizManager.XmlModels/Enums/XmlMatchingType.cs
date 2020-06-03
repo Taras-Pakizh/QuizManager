@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuizManager.DBModels
+namespace QuizManager.XmlModels
 {
-    public enum UserDataType
+    public enum XmlMatchingType
     {
-        Anonimus,
+        Single,
 
-        Authorizated
+        Multy
     }
 }

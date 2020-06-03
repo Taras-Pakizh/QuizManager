@@ -1,0 +1,85 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model TestView
+
+@{
+    var mModel = Model.Model as XmlMatching;
+
+    //таблиця
+    //відсилається Id колонки (RowId_ColId)
+    //генерувати value типу RowId_ColId
+
+    var answers = new List<XmlKeyValuePair<int, int>>();
+
+    if (Model?.Save?.Answers != null)
+    {
+        var answer = new XmlMatchingMultyAnswer();
+        answer.ParseAnswer(Model.Save.Answers);
+
+        answers = answer.Answer;
+    }
+    
+    var qPath = "SectionData[" + Model.Index + "].QuestionId";
+
+    var nPath = "SectionData[" + Model.Index + "].Answers";
+}
+
+@Html.Hidden(qPath, Model.Question.Id)
+
+<div class="well questionwell">
+
+    <div class="pull-right myhmargin">
+
+        @RenderHelper.InfoButton("Match rows with columns by checking proper checkbox")
+
+    </div>
+
+    <h4>@Model.Question.Text</h4>
+
+</div>
+
+<table class="table table-striped" >
+
+    <thead>
+        <tr>
+            <th></th>
+            @foreach(var item in mModel.Columns)
+            {
+                <th>
+                    <h4>@item.Text</h4>
+                </th>
+            }
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach(var row in mModel.Rows)
+        {
+            <tr>
+                <td>
+                    <h4>@row.Text</h4>
+                </td>
+                @foreach (var col in mModel.Columns)
+                {
+                    if (answers.Any(x => x.Key == row.Id && x.Value == col.Id))
+                    {
+                        <td>
+                            @RenderHelper.CheckBoxSimple(nPath, true, row.Id + "_" + col.Id)
+                        </td>
+                    }
+                    else
+                    {
+                        <td>
+                            @RenderHelper.CheckBoxSimple(nPath, false, row.Id + "_" + col.Id)
+                        </td>
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+
+</table>
+

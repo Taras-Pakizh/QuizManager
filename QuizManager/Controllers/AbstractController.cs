@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNet.Identity.Owin;
+﻿using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
 using QuizManager.DBModels;
 using QuizManager.Logic;
 using QuizManager.ModelViews;
@@ -32,7 +34,7 @@ namespace QuizManager.Controllers
 
         public AbstractController() : base()
         {
-
+            
         }
     }
 }

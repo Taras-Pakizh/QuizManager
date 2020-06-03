@@ -10,6 +10,11 @@ using QuizManager.ModelViews;
 using QuizManager.XmlModels;
 using QuizManager.Helpers;
 using QuizManager.Logic;
+using System.IO;
+using TheArtOfDev.HtmlRenderer.Core;
+using TheArtOfDev.HtmlRenderer.PdfSharp;
+using Microsoft.AspNet.Identity.EntityFramework;
+using QuizManager.Models;
 
 namespace QuizManager.Controllers
 {
@@ -21,8 +26,11 @@ namespace QuizManager.Controllers
             cx = new QuizContext();
 
             helper = new ControllerHelper(cx);
+
+            ViewBag.helper = helper;
         }
 
+        [Authorize(Roles = "Admin")]
         // GET: Cabinet
         public ActionResult Index()
         {
@@ -100,16 +108,20 @@ namespace QuizManager.Controllers
         /// </summary>
         private string GenerateLink(QuizReference reference)
         {
-            return "https://localhost:44339/Test/GetTest?link=" + reference.Id;
+            var baseurl = Request.Url.GetLeftPart(UriPartial.Authority);
+
+            return baseurl + "/Test/GetTest?link=" + reference.Id;
+
+            //return "https://localhost:44339/Test/GetTest?link=" + reference.Id;
         }
 
         /// <summary>
         /// Generate new link and redirect to QuizLink
         /// </summary>
-        [HttpGet]
-        public ActionResult GetLink(int? id)
+        [HttpPost]
+        public ActionResult GetLink(QuizLinkView view)
         {
-            var quiz = cx.Quizzes.Find(id);
+            var quiz = cx.Quizzes.Find(view.Quiz.Id);
 
             if(quiz == null)
             {
@@ -123,17 +135,13 @@ namespace QuizManager.Controllers
                 cx.QuizReferences.RemoveRange(reference);
             }
 
-            Guid g = Guid.NewGuid();
-            string GuidString = Convert.ToBase64String(g.ToByteArray());
-            GuidString = GuidString.Replace("=", "A");
-            GuidString = GuidString.Replace("+", "B");
-            GuidString = GuidString.Replace("/", "C");
-
             var model = new QuizReference()
             {
-                Id = GuidString,
+                Id = helper.LinkGenerator(),
                 Quiz = quiz,
-                Deadline = DateTime.Now
+                Deadline = view.Reference.Deadline,
+                AttemptCount = view.Reference.AttemptCount,
+                Type = view.Reference.Type
             };
 
             cx.QuizReferences.Add(model);
@@ -215,24 +223,101 @@ namespace QuizManager.Controllers
         }
 
         /// <summary>
-        /// Open quiz statistic
-        /// Using inner partial view for generate table of attempts
-        /// Poll sucks
+        /// Should change to filters
         /// </summary>
         [HttpGet]
         public ActionResult QuizInfo(int? id)
         {
             var quiz = cx.Quizzes.Find(id);
 
-            var attempts = cx.QuizAttempts.Where(x => x.Quiz.Id == quiz.Id).ToList();
-
-            var model = new QuizInfoView()
+            Session["filters"] = new AttemptFilters()
             {
-                Quiz = quiz,
-                Attempts = attempts
+                Page = 1,
+                Quiz = quiz
             };
 
-            return View(model);
+            return RedirectToAction("Attempts");
+        }
+
+        [HttpGet]
+        /// <summary>
+        /// Main page
+        /// inside partial view 
+        /// </summary>
+        public ActionResult Attempts()
+        {
+            var filters = new AttemptFilters()
+            {
+                Page = 1
+            };
+
+            if(Session["filters"] != null)
+            {
+                filters = (AttemptFilters)Session["filters"];
+            }
+
+            Session["filters"] = null;
+
+            return View(
+                filters.Filter(
+                    cx, 
+                    cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
+            ));
+        }
+
+        /// <summary>
+        /// PartialView - table and filters
+        /// </summary>
+        [HttpPost]
+        public ActionResult FilterAttempts(AttemptFilterView view)
+        {
+            if(view.Command == "Reset")
+            {
+                return PartialView(new AttemptFilters()
+                {
+                    Page = 1
+                }.Filter
+                (
+                    cx, 
+                    cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
+                ));
+            }
+
+            if (view.Navigation != null || view.Navigation == "")
+            {
+                if(view.Navigation == "Back")
+                {
+                    view.Filters.Page--;
+                }
+                else if(view.Navigation == "Next")
+                {
+                    view.Filters.Page++;
+                }
+                else if(Int32.TryParse(view.Navigation, out int page))
+                {
+                    view.Filters.Page = page;
+                }
+                else
+                {
+                    throw new Exception("Navigation is initialized wrong");
+                }
+            }
+
+            view.Filters.Quiz = cx.Quizzes.Find(view.Filters.Quiz?.Id);
+            view.Filters.Group = cx.Groups.Find(view.Filters.Group?.Id);
+            view.Filters.User = cx.Users.Find(view.Filters.User?.Id);
+
+            //my attempts окрема (checkbox)
+
+            //to filter groups you need to storage reference(group or null) for attempt
+
+            ModelState.Clear();
+
+            return PartialView(
+                view.Filters.Filter(
+                    cx, 
+                    cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
+           ));
         }
 
         /// <summary>
@@ -263,9 +348,9 @@ namespace QuizManager.Controllers
                     Tests = new List<AttempTestView>()
                 };
                 
-                var answers = view.Answers.
-                    Where(x => x.Question.Section.Id == section.Id).
-                    OrderBy(y => y.Question.OrderNumber).ToList();
+                var answers = view.Answers.Where(x => x.Question != null).
+                    Where(y => y.Question.Section.Id == section.Id).
+                    OrderBy(z => z.Question.OrderNumber).ToList();
 
                 foreach(var answer in answers)
                 {
@@ -286,6 +371,33 @@ namespace QuizManager.Controllers
             }
 
             return View(model);
+        }
+
+
+        //------------PDF----------------------------------------------------------------
+
+        [HttpPost]
+        [ValidateInput(false)]
+        public void GeneratePDF(string htmlValue)
+        {
+            var css = PdfGenerator.ParseStyleSheet(System.IO.File.ReadAllText(Server.MapPath("~/Content/bootstrap.min.css")));
+            var msPDF = PdfSharpConvert(htmlValue, css);
+
+            Response.ContentType = "application/pdf";
+            Response.AppendHeader("Content-Disposition", "attachment; filename=myPdf.pdf");
+            Response.BinaryWrite(msPDF.ToArray());
+
+            Response.End();
+        }
+
+        public static MemoryStream PdfSharpConvert(string html, CssData css)
+        {
+            using (var file = new MemoryStream())
+            {
+                var pdf = PdfGenerator.GeneratePdf(html, PdfSharp.PageSize.A4, 25, css);
+                pdf.Save(file);
+                return file;
+            }
         }
     }
 }

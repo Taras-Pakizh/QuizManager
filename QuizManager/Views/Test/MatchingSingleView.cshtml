@@ -1,0 +1,85 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model TestView
+
+@{
+    var mModel = Model.Model as XmlMatching;
+
+    var Rows = mModel.Rows.OrderBy(x => x.Id).ToList();
+    List<XmlMatchingOption> Columns = null;
+
+    if(Model?.Save?.Answers != null)
+    {
+        //на сервер відсилається тільки колонки
+        //переміщувати можна тільки колонки
+
+        Columns = Model.Save.Answers.
+            Select(x => mModel.Columns.Single(y => y.Id == Int32.Parse(x))).
+            ToList();
+    }
+    else
+    {
+        Columns = mModel.Columns.Shuffle();
+    }
+
+    var qPath = "SectionData[" + Model.Index + "].QuestionId";
+
+    var nPath = "SectionData[" + Model.Index + "].Answers";
+}
+
+@Html.Hidden(qPath, Model.Question.Id)
+
+<div class="well questionwell">
+
+    <div class="pull-right myhmargin">
+
+        @RenderHelper.InfoButton("Drag the right-side options to match them with proper left-side options")
+
+    </div>
+
+    <h4>@Model.Question.Text</h4>
+
+</div>
+
+<div class="row">
+
+    <div class="col-sm-6">
+
+        <ul class="list-group">
+
+            @foreach(var item in Rows)
+            {
+                <li class="list-group-item">
+
+                    <h4>@item.Text</h4>
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+
+    <div class="col-sm-6">
+
+        <ul class="list-group testSortable">
+
+            @foreach (var item in Columns)
+            {
+                <li class="list-group-item">
+
+                    <input type="hidden" name="@nPath" value="@item.Id" />
+
+                    <h4>@item.Text</h4>
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+
+</div>

@@ -9,6 +9,11 @@ namespace QuizManager.XmlModels
     [Serializable]
     public class XmlSingleAnswer : XmlAnswer<int>
     {
+        public XmlSingleAnswer()
+        {
+            Answer = -1;
+        }
+
         public override bool IsValid()
         {
             if(Answer == -1)

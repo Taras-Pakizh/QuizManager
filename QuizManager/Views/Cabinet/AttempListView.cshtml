@@ -10,54 +10,50 @@
 
     var answers = new List<int>();
 
-    if(Model.XmlAnswer is XmlSingleAnswer)
+    if (Model.XmlAnswer is XmlSingleAnswer)
     {
         var singleAnswer = Model.XmlAnswer as XmlSingleAnswer;
 
-        answers.Add(singleAnswer.Answer);
+        if (singleAnswer.Answer != -1)
+        {
+            answers.Add(singleAnswer.Answer);
+        }
     }
-    else if(Model.XmlAnswer is XmlMultyAnswer)
+    else if (Model.XmlAnswer is XmlMultyAnswer)
     {
         var multyAnswer = Model.XmlAnswer as XmlMultyAnswer;
 
-        if(multyAnswer.Answer != null)
+        if (multyAnswer.Answer != null)
         {
             answers.AddRange(multyAnswer.Answer.ToList());
         }
     }
 }
 
-<div class="well">
+<div class="well questionwell">
 
-    <label>@Model.Question.Text</label>
-
-    <br />
-
-    <label>Mark:</label>
-
-    <span>@Model.Answer.Mark / @Model.Question.Value</span>
-
-    <br />
-
-    @foreach (var id in answers)
-    {
-        var option = question.Options.Single(x => x.Id == id);
-
-        if (option.IsTrue)
-        {
-            <div class="alert alert-success">
-                <span>@option.Comment</span>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-danger">
-                <span>@option.Comment</span>
-            </div>
-        }
-    }
+    <h4>Question:<strong>@Model.Question.Text</strong></h4>
+    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
 
 </div>
+
+@foreach (var id in answers)
+{
+    var option = question.Options.Single(x => x.Id == id);
+
+    if (option.IsTrue)
+    {
+        <div class="alert alert-success">
+            <h4>@option.Comment</h4>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <h4>@option.Comment</h4>
+        </div>
+    }
+}
 
 <ul class="list-group">
     @foreach (var item in question.Options)
@@ -66,10 +62,12 @@
         {
             <li class="list-group-item">
                 <div class="alert alert-success form-inline">
-                    @item.Text
-                    <div class="pull-right">
-                        <strong>Correct answer</strong>
-                    </div>
+                    <h4>
+                        @item.Text
+                        <div class="pull-right">
+                            <strong>Correct answer</strong>
+                        </div>
+                    </h4>
                 </div>
             </li>
         }
@@ -77,10 +75,12 @@
         {
             <li class="list-group-item">
                 <div class="alert alert-danger form-inline">
-                    @item.Text
-                    <div class="pull-right">
-                        <strong>Wrong answer</strong>
-                    </div>
+                    <h4>
+                        @item.Text
+                        <div class="pull-right">
+                            <strong>Correct answer</strong>
+                        </div>
+                    </h4>
                 </div>
             </li>
         }
@@ -88,10 +88,12 @@
         {
             <li class="list-group-item">
                 <div class="alert form-inline">
-                    @item.Text
-                    <div class="pull-right">
-                        <strong>Answer</strong>
-                    </div>
+                    <h4>
+                        @item.Text
+                        <div class="pull-right">
+                            <strong>Answer</strong>
+                        </div>
+                    </h4>
                 </div>
             </li>
         }
@@ -99,7 +101,7 @@
         {
             <li class="list-group-item">
                 <div class="alert form-inline">
-                    @item.Text
+                    <h4>@item.Text</h4>
                 </div>
             </li>
         }

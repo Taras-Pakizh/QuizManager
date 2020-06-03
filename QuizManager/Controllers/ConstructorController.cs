@@ -22,6 +22,8 @@ namespace QuizManager.Controllers
             cx = new QuizContext();
 
             helper = new ControllerHelper(cx);
+
+            ViewBag.helper = helper;
         }
 
         //--------------------Sections------------------------------------------------------------
@@ -39,8 +41,6 @@ namespace QuizManager.Controllers
                 Quiz = quiz,
                 Sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).ToList()
             };
-
-            ViewBag.helper = helper;
 
             return View(model);
         }
@@ -100,6 +100,16 @@ namespace QuizManager.Controllers
 
             var questions = cx.Questions.Where(x => x.Section.Id == model.Id).ToList();
 
+            foreach(var question in questions)
+            {
+                var answers = cx.Answers.Where(x => x.Question.Id == question.Id).ToList();
+
+                foreach(var answer in answers)
+                {
+                    answer.Question = null;
+                }
+            }
+
             cx.Questions.RemoveRange(questions);
 
             cx.Sections.Remove(model);
@@ -121,12 +131,18 @@ namespace QuizManager.Controllers
         public ActionResult AddSection(QuizSectionsView view)
         {
             var section = view.NewSection;
-
+            
             section.Quiz = cx.Quizzes.Find(section.Quiz.Id);
 
-            section.Order = cx.Sections.
-                    Where(x => x.Quiz.Id == section.Quiz.Id).
+            if(cx.Sections.Count(x=>x.Quiz.Id == section.Quiz.Id) != 0)
+            {
+                section.Order = cx.Sections.Where(x => x.Quiz.Id == section.Quiz.Id).
                     Max(y => y.Order) + 1;
+            }
+            else
+            {
+                section.Order = 1;
+            }
 
             cx.Sections.Add(section);
 
@@ -139,6 +155,8 @@ namespace QuizManager.Controllers
                 Quiz = quiz,
                 Sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).ToList()
             };
+
+            ModelState.Clear();
 
             return View("Sections", quizModel);
         }
@@ -157,7 +175,8 @@ namespace QuizManager.Controllers
 
             model.Name = view.Name;
             model.TimeLimit = view.TimeLimit;
-            model.Type = view.Type;
+            model.TimeLimitType = view.TimeLimitType;
+            model.Difficulty = model.Difficulty;
             model.QuestionCount = view.QuestionCount;
 
             cx.SaveChanges();
@@ -208,12 +227,7 @@ namespace QuizManager.Controllers
         [HttpPost, ActionName("Add")]
         public ActionResult AddPost(QuizView view)
         {
-            if (!ModelState.IsValid)
-            {
-                return HttpNotFound();
-            }
-
-            var CurrentUser = UserManager.FindByName(User.Identity.Name);
+            var CurrentUser = cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id);
 
             var model = new Quiz()
             {
@@ -221,7 +235,8 @@ namespace QuizManager.Controllers
                Value = view.Value,
                TimeLimit = view.TimeLimit,
                Type = view.Type,
-               UserData = view.UserData,
+               TestingType = view.TestingType,
+               TimeLimitType = view.TimeLimitType,
                User = CurrentUser,
             };
 
@@ -252,7 +267,8 @@ namespace QuizManager.Controllers
                 Value = quiz.Value,
                 TimeLimit = quiz.TimeLimit,
                 Type = quiz.Type,
-                UserData = quiz.UserData
+                TestingType = quiz.TestingType,
+                TimeLimitType = quiz.TimeLimitType
             };
 
             return View(model);
@@ -266,7 +282,8 @@ namespace QuizManager.Controllers
             quiz.Value = view.Value;
             quiz.TimeLimit = view.TimeLimit;
             quiz.Type = view.Type;
-            quiz.UserData = view.UserData;
+            quiz.TestingType = view.TestingType;
+            quiz.TimeLimitType = view.TimeLimitType;
 
             cx.SaveChanges();
 
@@ -425,16 +442,16 @@ namespace QuizManager.Controllers
 
             question.Type = view.Question.Type;
 
+            question.XmlValue = null;
+            question.TypeName = null;
+
             cx.SaveChanges();
 
             RedactorView model = null;
 
             if(view.Question.Type != null)
             {
-                model = RedactorView.GetView(
-                    (QuestionType)view.Question.Type, 
-                    cx.Quizzes.Find(view.Quiz.Id).Type
-                );
+                model = RedactorView.GetView((QuestionType)view.Question.Type);
 
                 model.Question = question;
 
@@ -451,48 +468,9 @@ namespace QuizManager.Controllers
             return PartialView("Redactor", model);
         }
 
-
+        
         //-----------------------------------------------------------------------------------
 
-
-        /// <summary>
-        /// A new action for saving every quiz type
-        /// </summary>
-        [HttpPost]
-        public ActionResult SaveXmlListPoll(PollListRedactorView view)
-        {
-            var question = cx.Questions.Find(view.Question.Id);
-
-            if(question == null)
-            {
-                return HttpNotFound();
-            }
-
-            question.Text = view.Question.Text;
-
-            question.Value = view.Question.Value;
-
-            question.TypeName = view._XmlModel.GetType().Name;
-
-            if (!XmlValidator.Validate(view._XmlModel))
-            {
-                ViewBag.Errors = XmlValidator.ErrorList;
-
-                return PartialView("Redactor", view);
-            }
-
-            question.XmlObject = XmlBase.Serialize<XmlPollList>(view._XmlModel);
-
-            cx.SaveChanges();
-
-            ViewBag.IsSaved = true;
-
-            view.Question = question;
-            view.Quiz = question.Quiz;
-            view.Section = question.Section;
-
-            return PartialView("Redactor", view);
-        }
         [HttpPost]
         public ActionResult SaveXmlListTest(TestListRedactorView view)
         {
@@ -503,7 +481,22 @@ namespace QuizManager.Controllers
                     view._XmlModel.Options.Single(x => x.Id == id).IsTrue = true;
                 }
             }
-            
+
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                view.Question = cx.Questions.Find(view.Question.Id);
+
+                return PartialView("Redactor", view);
+            }
+
+            view = (TestListRedactorView)helper.SaveXmlQuestion(view);
+
+            ViewBag.IsSaved = true;
+
+            return PartialView("Redactor", view);
+            /*
             var question = cx.Questions.Find(view.Question.Id);
 
             if (question == null)
@@ -536,8 +529,66 @@ namespace QuizManager.Controllers
             view.Quiz = question.Quiz;
             view.Section = question.Section;
 
+            return PartialView("Redactor", view);*/
+        }
+
+        [HttpPost]
+        public ActionResult SaveXmlOrder(TestOrderRedactorView view)
+        {
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                view.Question = cx.Questions.Find(view.Question.Id);
+
+                return PartialView("Redactor", view);
+            }
+
+            view = (TestOrderRedactorView)helper.SaveXmlQuestion(view);
+
+            ViewBag.IsSaved = true;
+
             return PartialView("Redactor", view);
         }
 
+        [HttpPost]
+        public ActionResult SaveXmlMatching(TestMatchingRedactorView view)
+        {
+            view._XmlModel.Answers = view.ParseAnswers();
+
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                view.Question = cx.Questions.Find(view.Question.Id);
+
+                return PartialView("Redactor", view);
+            }
+
+            view = (TestMatchingRedactorView)helper.SaveXmlQuestion(view);
+
+            ViewBag.IsSaved = true;
+
+            return PartialView("Redactor", view);
+        }
+
+        [HttpPost]
+        public ActionResult SaveXmlTextInput(TestTextInputRedactorView view)
+        {
+            if (!XmlValidator.Validate(view._XmlModel))
+            {
+                ViewBag.Errors = XmlValidator.ErrorList;
+
+                view.Question = cx.Questions.Find(view.Question.Id);
+
+                return PartialView("Redactor", view);
+            }
+
+            view = (TestTextInputRedactorView)helper.SaveXmlQuestion(view);
+
+            ViewBag.IsSaved = true;
+
+            return PartialView("Redactor", view);
+        }
     }
 }

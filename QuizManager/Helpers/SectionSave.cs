@@ -18,6 +18,8 @@ namespace QuizManager.Helpers
         public Dictionary<int, XmlBase> Answers { get; set; } 
             = new Dictionary<int, XmlBase>();
 
+        public SectionSave() { }
+
         public SectionSave(SectionView view, QuizContext cx)
         {
             View = view;

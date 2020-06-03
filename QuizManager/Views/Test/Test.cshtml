@@ -4,17 +4,21 @@
 @model Quiz
 
 @{
-    //Model.TimeLimit = new TimeSpan(1000000000);
+    //Model.TimeLimit = new TimeSpan(100000000);
 }
 
-<div class="jumbotron">
+<div class="well mywell row">
 
-    <h2>@Model.Name</h2>
+    <div class="text-center">
 
-    <div class="pull-right">
-        <span id="timer"></span><br />
+        <h1><strong>@Model.Name</strong></h1>
 
-        <strong>Don't refrash</strong>
+    </div>
+
+    <div class="pull-right myhmargin">
+        <h4><strong id="timer"></strong></h4>
+
+        <h4><strong>Don't refrash</strong></h4>
     </div>
 
 </div>
@@ -29,7 +33,6 @@
 
 </div>
 
-
 @section scripts
 {
     <script>
@@ -41,48 +44,59 @@
     </script>
 }
 
-<script>
+@if (Model.TimeLimitType == QuizTimeLimitType.Limited)
+{
+    <script>
 
-    var totalSeconds = @Model.TimeLimit.Value.TotalSeconds;
+        var totalSeconds = @Model.TimeLimit.Value.TotalSeconds;
 
-    function TimerValue() {
+        function TimerValue() {
 
-        var seconds = totalSeconds % 60;
-        var minutes = parseInt(totalSeconds / 60);
-        var hours = parseInt(totalSeconds / 3600);
+            var seconds = totalSeconds % 60;
+            var minutes = parseInt(totalSeconds / 60);
+            var hours = parseInt(totalSeconds / 3600);
 
-        return "Time Left: " + TimeFormat(hours) + ":" + TimeFormat(minutes) + ":" + TimeFormat(seconds);
-    }
-
-    function TimeFormat(value) {
-        if (value > 9) {
-            return value.toString();
+            return "Time Left: " + TimeFormat(hours) + ":" + TimeFormat(minutes) + ":" + TimeFormat(seconds);
         }
-        return "0" + value;
-    }
 
-    function Finish() {
-        document.forms['ff'].submit();
-    }
-
-    function Tick() {
-
-        document.getElementById('timer').innerText = TimerValue();
-
-        var _tick = setInterval(function () {
-
-            totalSeconds--;
-
-            if (totalSeconds == 0) {
-                Finish();
-                clearInterval(_tick);
+        function TimeFormat(value) {
+            if (value > 9) {
+                return value.toString();
             }
+            return "0" + value;
+        }
+
+        function Finish() {
+
+            var submitButton = document.getElementsByName('btnSubmit')[0];
+
+            submitButton.setAttribute('name', '');
+
+            $('#TestsForm').append('<input type="hidden" name="btnSubmit" value="QuizTime" />')
+
+            submitButton.click();
+        }
+
+        function Tick() {
 
             document.getElementById('timer').innerText = TimerValue();
 
-        }, 1000);
-    }
+            var _tick = setInterval(function () {
 
-    Tick();
+                totalSeconds--;
 
-</script>
+                if (totalSeconds == 0) {
+                    alert('Time limit reached');
+                    Finish();
+                    clearInterval(_tick);
+                }
+
+                document.getElementById('timer').innerText = TimerValue();
+
+            }, 1000);
+        }
+
+        Tick();
+
+    </script>
+}

@@ -1,36 +1,48 @@
 ﻿@using QuizManager.ModelViews;
 @using QuizManager.DBModels;
+@using QuizManager.Helpers;
 @{
     ViewBag.Title = "EditSection";
 }
 @model Section
 
-<div class="container">
+<div class="mycenter">
 
     @using (Html.BeginForm("EditSection", "Constructor", FormMethod.Post))
     {
         <div class="form-group">
-            <h2>Edit Section</h2>
+            <h3>Edit section</h3>
         </div>
 
         @Html.HiddenFor(x => x.Quiz.Id)
-
-        @Html.HiddenFor(x=>x.Id)
+        @Html.HiddenFor(x => x.Id)
 
         <div class="form-group">
             @Html.Label("Name:")
             @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
         </div>
 
-        <div class="form-group">
-            @Html.Label("Type:")
-            @Html.EnumDropDownListFor(x => x.Type, new { @class = "form-control" })
-        </div>
+        if (Model.Quiz.Type == QuizType.Adaptive &&
+            Model.Quiz.TestingType == QuizTestingType.PerSection)
+        {
+            <div class="form-group">
+                @Html.Label("Difficulty:")
+                @Html.TextBoxFor(x => x.Difficulty, new { @class = "form-control", type = "number", min = "0" })
+            </div>
+        }
 
-        <div class="form-group">
-            @Html.Label("Time:")
-            @Html.TextBoxFor(x => x.TimeLimit, new { @class = "form-control", type = "time" })
-        </div>
+        if (Model.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited)
+        {
+            <div class="form-group">
+                @Html.Label("Time limit type:")
+                @Html.DropDownListFor(x => x.TimeLimitType, Html.GetSelectList(typeof(SectionTimeLimitType), Model.TimeLimitType), new { @class = "form-control", id = "enum" })
+            </div>
+
+            <div class="form-group">
+                @Html.Label("Time:")
+                @Html.TextBoxFor(x => x.TimeLimit, new { @class = "form-control", type = "time", step = "1", id = "timelimit" })
+            </div>
+        }
 
         <div class="form-group">
             @Html.Label("Questions count:")
@@ -38,8 +50,48 @@
         </div>
 
         <div class="form-group">
-            <input type="submit" class="btn btn-default" value="Edit" />
+            <input type="submit" class="btn btn-info mycolor" value="Edit" />
         </div>
     }
 
 </div>
+
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
+
+                var val = enumList.value;
+
+                var timelimit = document.getElementById('timelimit');
+
+                if (val == "Limited") {
+                    //Limited
+                    timelimit.disabled = false;
+                    timelimit.required = false;
+                }
+                else {
+                    //NonLimited or SectionLimited or QuestionLimited
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}
+
+

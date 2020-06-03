@@ -22,112 +22,126 @@
     }
 }
 
-    @using (Ajax.BeginForm("SaveXmlListTest", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
-    {
-        @Html.HiddenFor(x=>x.Section.Id)
-        @Html.HiddenFor(x => x.Question.Id)
-        @Html.HiddenFor(x => x.Quiz.Id)
-        <input type="hidden" name="_XmlModel.ListType" value="@type" />
+@using (Ajax.BeginForm("SaveXmlListTest", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
+{
+    <div class="form-group pull-right myhmargin">
+        @RenderHelper.InfoButtonMyColor("Use 'Plus' button to add new option. Use 'Remove' button to remove option. Drag options to order them in proper way.",
+            "myhmargin")
 
-        <div class="form-inline">
+        <input type="submit" class="btn btn-success mycolor" value="Save question" />
+    </div>
 
-            @Html.LabelFor(x => x.Question.Text, "Question:")
+    @Html.HiddenFor(x => x.Section.Id)
+    @Html.HiddenFor(x => x.Question.Id)
+    @Html.HiddenFor(x => x.Quiz.Id)
+    <input type="hidden" name="_XmlModel.ListType" value="@type" />
 
-            @Html.TextBoxFor(x => x.Question.Text, new { @class = "form-control" })
+    <div class="form-inline form-group myhmargin">
 
-            @Html.TextBoxFor(x=>x.Question.Value, new { @class = "form-control", type="number", min="1"})
+        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark" })
 
-            @RenderHelper.AddOptionButton("addLink")
+        @RenderHelper.AddOptionButton("addLink")
+
+    </div>
+
+    <div class="form-group myhmargin">
+
+        @Html.TextAreaFor(x=>x.Question.Text, new { @class = "form-control", placeholder="Question text" })
+
+    </div>
+
+    <hr class="myhr" />
+
+    <ul id="options" class="list-group">
+
+        @if (Model._XmlModel != null && Model._XmlModel.Options != null)
+        {
+            for (int i = 0; i < Model._XmlModel.Options.Count(); ++i)
+            {
+                <li class="removeContainer list-group-item">
+
+                    @Html.HiddenFor(x => x._XmlModel.Options[i].Id)
+
+                    <div class="row myhmargin">
+
+                        <div class="form-group pull-left my80">
+                            @Html.TextBoxFor(x => x._XmlModel.Options[i].Text, new { @class = "form-control", placeholder="Option text" })
+                        </div>
+
+                        <div class="pull-right">
+                            @RenderHelper.RemoveOptionButton("removeLink")
+                        </div>
+
+                        @if (type == XmlQuestionType.Radio || type == XmlQuestionType.ComboBox)
+                        {
+                            <div class="radio pull-right center">
+                                @Html.RadioButton("Ids", Model._XmlModel.Options[i].Id, Model._XmlModel.Options[i].IsTrue)
+                            </div>
+                        }
+                        else if (type == XmlQuestionType.Checkbox)
+                        {
+                            <div class="checkbox pull-right center">
+                                @RenderHelper.CheckBoxSimple("Ids", Model._XmlModel.Options[i].IsTrue, Model._XmlModel.Options[i].Id.ToString())
+                            </div>
+                        }
+
+                    </div>
+
+                    <br />
+
+                    <div class="form-group">
+
+                        @Html.TextAreaFor(x => x._XmlModel.Options[i].Comment, new { @class = "form-control", placeholder = "Comment" })
+
+                    </div>
+
+                </li>
+            }
+        }
+
+    </ul>
+}
+
+<div class="hidden">
+
+    <li id="option" class="removeContainer list-group-item">
+
+        <input type="hidden" />
+
+        <div class="row myhmargin">
+
+            <div class="form-group pull-left my80">
+                <input type="text" class="form-control" placeholder="Option text" />
+            </div>
+
+            <div class="pull-right">
+                @RenderHelper.RemoveOptionButton("removeLink")
+            </div>
+
+            @if (type == XmlQuestionType.ComboBox || type == XmlQuestionType.Radio)
+            {
+                <div class="radio pull-right center">
+                    <input type="radio" name="Ids" />
+                </div>
+            }
+            else if (type == XmlQuestionType.Checkbox)
+            {
+                <div class="checkbox pull-right center">
+                    <input type="checkbox" name="Ids" />
+                </div>
+            }
 
         </div>
 
         <br />
 
-        <ul id="options" class="list-group">
+        <div class="form-group">
 
-            @if (Model._XmlModel != null)
-            {
-                for (int i = 0; i < Model._XmlModel.Options.Count(); ++i)
-                {
-                    <li class="removeContainer list-group-item">
+            <textarea class="form-control" placeholder="Comment" />
 
-                        @Html.HiddenFor(x => x._XmlModel.Options[i].Id)
-
-                        <div class="form-inline">
-                            <div class="form-group">
-                                @Html.TextBoxFor(x => x._XmlModel.Options[i].Text, new { @class = "form-control" })
-                            </div>
-
-
-                            @if (type == XmlQuestionType.Radio || type == XmlQuestionType.ComboBox)
-                            {
-                                <div class="radio">
-                                    @Html.RadioButton("Ids", Model._XmlModel.Options[i].Id, Model._XmlModel.Options[i].IsTrue)
-                                </div>
-                            }
-                            else if (type == XmlQuestionType.Checkbox)
-                            {
-                                <div class="checkbox">
-                                    @RenderHelper.CheckBoxSimple("Ids", Model._XmlModel.Options[i].IsTrue, Model._XmlModel.Options[i].Id.ToString())
-                                </div>
-                            }
-
-                            @RenderHelper.RemoveOptionButton("removeLink")
-
-                        </div>
-                        <br /><br />
-                        <div class="form-group">
-
-                            @Html.TextAreaFor(x => x._XmlModel.Options[i].Comment, new { @class = "form-control", placeholder = "Comment" })
-
-                        </div>
-
-                    </li>
-                }
-                }
-
-        </ul>
-
-        <div class="form-group pull-right">
-            <input type="submit" class="btn btn-success" value="Save" />
         </div>
-    }
 
-    <div class="hidden">
+    </li>
 
-        <li id="option" class="removeContainer list-group-item">
-
-            <input type="hidden" />
-
-            <div class="form-inline">
-                <div class="form-group">
-                    <input type="text" class="form-control" />
-                </div>
-                @if (type == XmlQuestionType.ComboBox || type == XmlQuestionType.Radio)
-                {
-                    <div class="radio">
-                        <input type="radio" name="Ids" />
-                    </div>
-                }
-                else if (type == XmlQuestionType.Checkbox)
-                {
-                    <div class="checkbox">
-                        <input type="checkbox" name="Ids" />
-                    </div>
-                }
-
-                @RenderHelper.RemoveOptionButton("removeLink")
-
-            </div>
-
-            <br /><br />
-            <div class="form-group">
-
-                <textarea class="form-control" placeholder="Comment" />
-
-            </div>
-
-        </li>
-
-    </div>
+</div>
 

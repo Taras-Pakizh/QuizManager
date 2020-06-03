@@ -1,0 +1,53 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Helpers.Models;
+@using QuizManager.XmlModels;
+
+@model TestTextInputRedactorView
+
+@using (Ajax.BeginForm("SaveXmlTextInput", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
+{
+    <div class="form-group pull-right myhmargin">
+        @RenderHelper.InfoButtonMyColor("Use '(...)' button to point empty space in Text. ",
+            "myhmargin")
+
+        <input type="submit" class="btn btn-success mycolor" value="Save question" />
+    </div>
+
+    @Html.HiddenFor(x => x.Section.Id)
+    @Html.HiddenFor(x => x.Question.Id)
+    @Html.HiddenFor(x => x.Quiz.Id)
+
+    <div class="form-inline form-group myhmargin">
+
+        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark" })
+        
+        <button type="button" class="btn btn-default form-control btn-empty">
+            (...)
+        </button>
+
+    </div>
+
+    <div class="form-group myhmargin">
+
+        @Html.TextAreaFor(x=>x.Question.Text, new { @class = "form-control", placeholder="Question text" })
+
+    </div>
+
+    <hr class="myhr" />
+
+    <div class="form-group">
+        @Html.TextAreaFor(x => x._XmlModel.Text, new { @class = "form-control", placeholder = "Text", id = "myarea" })
+    </div>
+
+    <div class="form-group">
+        @Html.TextBoxFor(x => x._XmlModel.Input, new { @class = "form-control", placeholder = "Input"})
+    </div>
+
+    <div class="form-group">
+        @Html.TextAreaFor(x => x._XmlModel.Comment, new { @class = "form-control", placeholder = "Comment" })
+    </div>
+
+}
+

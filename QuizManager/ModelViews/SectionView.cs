@@ -1,4 +1,5 @@
-﻿using QuizManager.Helpers;
+﻿using QuizManager.DBModels;
+using QuizManager.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace QuizManager.ModelViews
         public int QuizId { get; set; }
 
         public int SectionId { get; set; }
+
+        public Section Section { get; set; }
 
         public List<AnswerBaseView> SectionData { get; set; }
 

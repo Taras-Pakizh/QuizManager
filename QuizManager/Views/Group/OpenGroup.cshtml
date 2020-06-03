@@ -1,7 +1,180 @@
-﻿
-@{
-    ViewBag.Title = "OpenGroup";
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model GroupView
+
+@{ 
+    var group = Model.Group;
+
+    var userView = new TableWithModelView()
+    {
+        data = group.ApplicationUsers,
+        PropertyNames = new List<string>()
+        {
+            "UserName", "Email"
+        },
+        HeaderNames = new List<string>()
+        {
+            "Login", "Email"
+        },
+        Ids = new List<IList<string>>()
+        {
+            group.ApplicationUsers.
+                Select(x=>group.Id + "_" + x.Id).ToList()
+        },
+        LinkContents = new List<string>()
+        {
+            "Remove member"
+        },
+        ControllerNames = new List<string>()
+        {
+            "Group"
+        },
+        ActionNames = new List<string>()
+        {
+            "RemoveMember"
+        }
+    };
 }
 
-<h2>OpenGroup</h2>
+    <div class="well row mywell">
+
+        <div class="pull-left myhmargin">
+
+            @RenderHelper.Back(Url.Action("MyGroups", "Group"))
+
+        </div>
+
+        <div class="pull-left myhmargin">
+            @using (Html.BeginForm("GroupAttempts", "Group", FormMethod.Get))
+            {
+                <input type="hidden" value="@Model.Group.Id" name="id" />
+                <input type="submit" class="btn btn-info mycolor" value="See group reports" />
+            }
+        </div>
+
+        <div class="pull-right myhmargin">
+            <h4><strong>Group name: </strong>@Model.Group.Name</h4>
+            <h4><strong>Creator: </strong>@Model.Group.Creator.UserName</h4>
+            <h4><strong>Email: </strong>@Model.Group.Creator.Email</h4>
+            @using (Html.BeginForm("EditGroup", "Group", FormMethod.Get))
+            {
+                <input type="hidden" value="@Model.Group.Id" name="id" />
+                <input type="submit" class="btn btn-warning mycolor" value="Edit group" />
+            }
+        </div>
+
+    </div>
+
+
+
+    <div class="btn-group-justified myhmargin">
+        <div class="btn-group">
+            <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#users">
+                See users
+            </button>
+        </div>
+    </div>
+    <div id="users" class="collapse myhmargin">
+        @Html.Partial("TableWithModel", userView)
+    </div>
+
+    <br />
+
+    @using (Html.BeginForm("AddAllowance", "Group", FormMethod.Get))
+    {
+        <input type="hidden" value="@Model.Group.Id" name="id" />
+
+        <div class="btn-group btn-group-justified myhmargin">
+            <div class="btn-group">
+                <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#allowance">
+                    See allowance
+                </button>
+            </div>
+            <div class="btn-group">
+                <input type="submit" class="btn btn-info mycolor" value="Add allowance" />
+            </div>
+        </div>
+    }
+    <div id="allowance" class="collapse myhmargin">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Quiz</th>
+                    <th>Type</th>
+                    <th>Attempts</th>
+                    <th>Deadline</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Allowances)
+                {
+                    <tr>
+                        <td>
+                            @item.Quiz.Name
+                        </td>
+                        <td>
+                            @item.Type
+                        </td>
+                        @if (item.Type == ReferenceType.Limited)
+                        {
+                            <td>
+                                @item.AttemptCount
+                            </td>
+                        }
+                        else if (item.Type == ReferenceType.NonLimited)
+                        {
+                            <td>
+                                <span>-</span>
+                            </td>
+                        }
+                        <td>
+                            @item.Deadline.ToString()
+                        </td>
+                        <td>
+                            @using (Html.BeginForm("EditAllowance", "Group", FormMethod.Get))
+                            {
+                                <input type="hidden" value="@item.Id" name="id" />
+                                <input type="submit" class="btn btn-default" value="Edit" />
+                            }
+                        </td>
+                        <td>
+                            <button data-toggle="modal" class="btn btn-default" data-target="#_@item.Id">
+                                Remove
+                            </button>
+                            <div class="modal fade" id="_@item.Id" role="dialog">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Alert</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Submit your action</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            @RenderHelper.ActionWithParameter(
+                                                Url.Action(
+                                                    "RemoveAllowance",
+                                                    "Group"
+                                                ),
+                                                item.Id.ToString(),
+                                                "Remove", ""
+                                            )
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+
 

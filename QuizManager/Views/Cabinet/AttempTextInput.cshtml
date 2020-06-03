@@ -1,0 +1,47 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model AttempTestView
+
+@{
+    var XmlQuestion = Model.Model as XmlTextInput;
+
+    var XmlAnswer = Model.XmlAnswer as XmlTextInputAnswer;
+
+}
+
+<div class="well questionwell">
+
+    <h4>Question:<strong>@Model.Question.Text</strong></h4>
+    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+
+</div>
+
+@if (XmlAnswer.Answer == XmlQuestion.Input)
+{
+    <div class="alert alert-success">
+        <h4>
+            <strong>Correct answer - </strong>
+            <span>@XmlAnswer.Answer</span>
+        </h4>
+        <h4><strong>Comment: </strong>@XmlQuestion.Comment</h4>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <h4>
+            <strong>Wrong answer - </strong>
+            <span>@XmlAnswer.Answer</span>
+        </h4>
+        <h4>
+            <strong>Comment: </strong>
+            @XmlQuestion.Comment
+        </h4>
+    </div>
+}
+
+
+<h4>@XmlQuestion.Text</h4>

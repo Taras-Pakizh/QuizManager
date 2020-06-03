@@ -23,6 +23,10 @@ namespace QuizManager.DBModels
 
         public double Mark { get; set; }
 
+        public AttempType Type { get; set; }
+
+        public virtual Group Group { get; set; }
+
         public virtual ICollection<Answer> Answers { get; set; }
     }
 }

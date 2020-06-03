@@ -1,0 +1,25 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model Group
+@{
+    ViewBag.Title = "AddGroup";
+}
+
+<br />
+
+<div class="mycenter">
+
+    @using (Html.BeginForm("AddGroup", "Group", FormMethod.Post))
+    {
+        <div class="form-group">
+            @Html.Label("Group name:")
+            @Html.TextBoxFor(x=>x.Name, new { @class="form-control" })
+        </div>
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-info mycolor" value="Add group" />
+        </div>
+    }
+
+</div>

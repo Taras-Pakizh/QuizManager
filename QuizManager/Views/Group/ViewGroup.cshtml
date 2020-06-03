@@ -1,0 +1,140 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model MemberGroupView
+
+@{
+    var group = Model.Group;
+
+    var userView = new TableWithModelView()
+    {
+        data = group.ApplicationUsers,
+        PropertyNames = new List<string>()
+{
+            "UserName", "Email"
+        },
+        HeaderNames = new List<string>()
+{
+            "Login", "Email"
+        },
+    };
+}
+
+<div class="well row mywell">
+
+    <div class="pull-left myhmargin">
+
+        @RenderHelper.Back(Url.Action("OpenedGroups", "Group"))
+
+    </div>
+
+    <div class="pull-right myhmargin">
+        <h4><strong>Group name: </strong>@Model.Group.Name</h4>
+        <h4><strong>Creator: </strong>@Model.Group.Creator.UserName</h4>
+        <h4><strong>Email: </strong>@Model.Group.Creator.Email</h4>
+    </div>
+
+</div>
+
+<div class="btn-group-justified myhmargin">
+    <div class="btn-group">
+        <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#users">
+            See users
+        </button>
+    </div>
+</div>
+<div id="users" class="collapse myhmargin">
+    @Html.Partial("TableWithModel", userView)
+</div>
+
+<div class="btn-group-justified myhmargin">
+    <div class="btn-group">
+        <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#allowance">
+            See allowance
+        </button>
+    </div>
+</div>
+<div id="allowance" class="collapse myhmargin">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Quiz</th>
+                <th>Type</th>
+                <th>Attempts left</th>
+                <th>Deadline</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Allowances)
+            {
+                <tr>
+                    <td>
+                        @item.Allowance.Quiz.Name
+                    </td>
+                    <td>
+                        @item.Allowance.Type
+                    </td>
+                    @if (item.Allowance.Type == ReferenceType.Limited)
+                    {
+                        var showAttempts = item.Allowance.AttemptCount - item.Attempts;
+
+                        if(showAttempts > 0)
+                        {
+                            <td>
+                                @showAttempts
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                No attempts left
+                            </td>
+                        }
+                    }
+                    else
+                    {
+                        <td>
+                            -
+                        </td>
+                    }
+                    <td>
+                        @item.Allowance.Deadline.ToString()
+                    </td>
+                    <td>
+                        @using (Html.BeginForm("GetTestAllowance", "Test", FormMethod.Get))
+                        {
+                            <input type="hidden" value="@item.Allowance.Id" name="id" />
+                            <input type="submit" class="btn btn-default" value="Start" />
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@{ 
+    string message = ViewBag.Alert;
+}
+
+@section scripts
+{
+    @if (ViewBag.Alert != null)
+    {
+        <script>
+
+            window.onload = function () {
+                var message = "@message";
+
+                alert(message);
+            };
+
+        </script>
+    }
+}
+
+
+
+

@@ -1,0 +1,56 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model TestView
+
+@{
+    var oModel = Model.Model as XmlOrder;
+
+    List<XmlTestOption> Options = null;
+
+    if(Model?.Save?.Answers != null)
+    {
+        Options = Model.Save.Answers.
+            Select(x => oModel.Options.Single(y=>y.Id == Int32.Parse(x))).
+            ToList();
+    }
+    else
+    {
+        Options = oModel.Options.Shuffle();
+    }
+
+    var qPath = "SectionData[" + Model.Index + "].QuestionId";
+
+    var nPath = "SectionData[" + Model.Index + "].Answers";
+}
+
+@Html.Hidden(qPath, Model.Question.Id)
+
+<div class="well questionwell">
+
+    <div class="pull-right myhmargin">
+
+        @RenderHelper.InfoButton("Drag the options to order it in proper way")
+
+    </div>
+
+    <h4>@Model.Question.Text</h4>
+
+</div>
+
+<ul class="list-group testSortable">
+
+    @foreach(var item in Options)
+    {
+        <li class="list-group-item"> 
+
+            <input type="hidden" name="@nPath" value="@item.Id" />
+
+            <h4>@item.Text</h4>
+
+        </li>
+    }
+
+</ul>

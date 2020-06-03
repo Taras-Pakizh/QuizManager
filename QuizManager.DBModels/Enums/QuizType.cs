@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,12 +9,10 @@ namespace QuizManager.DBModels
 {
     public enum QuizType
     {
-        Poll,
+        [Description("Simple testing")]
+        Test = 1,
 
-        Test,
-
-        Adaptive,
-
-        PerQuestion
+        [Description("Adaptive testing")]
+        Adaptive = 2,
     }
 }

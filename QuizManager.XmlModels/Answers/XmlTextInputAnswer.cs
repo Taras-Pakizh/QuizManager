@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace QuizManager.XmlModels
 {
     [Serializable]
-    public class XmlTextAnswer : XmlAnswer<string>
+    public class XmlTextInputAnswer : XmlAnswer<string>
     {
         public override bool IsValid()
         {
@@ -15,6 +15,7 @@ namespace QuizManager.XmlModels
             {
                 return false;
             }
+
             return true;
         }
 
@@ -25,14 +26,12 @@ namespace QuizManager.XmlModels
                 return;
             }
 
-            if(values.Count == 1)
+            if(values.Count != 1)
             {
-                Answer = values[0];
+                throw new Exception("Too many strings");
             }
-            else
-            {
-                throw new InvalidCastException();
-            }
+
+            Answer = values[0];
         }
     }
 }

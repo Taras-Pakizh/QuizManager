@@ -1,0 +1,254 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Helpers.Models;
+@using QuizManager.XmlModels;
+
+@model TestMatchingRedactorView
+
+@{
+    XmlMatchingType? type = null;
+
+    if (Model.Question.Type == QuestionType.MatchingSingle)
+    {
+        type = XmlMatchingType.Single;
+    }
+    if (Model.Question.Type == QuestionType.MatchingMulty)
+    {
+        type = XmlMatchingType.Multy;
+    }
+}
+
+@using (Ajax.BeginForm("SaveXmlMatching", null, new AjaxOptions() { UpdateTargetId = "inner" }, new { id = "SaveForm" }))
+{
+    <div class="form-group pull-right myhmargin">
+        @{ 
+            var info = "";
+            if(Model.Question.Type == QuestionType.MatchingSingle)
+            {
+                info = "Use 'Add option' button to add option on left-side. Use 'Add answer' button to add option on right-side. Use 'Remove' buttons to remove options. Drag 'Options' and 'Answers' to match option and answer on it. There can be additional answers with no option match.";
+            }
+            else if(Model.Question.Type == QuestionType.MatchingMulty)
+            {
+                info = "Use 'Add option' button to add option on left-side. Use 'Add answer' button to add option on right-side. Use 'Remove' buttons to remove options. Drag options to order them in proper way. Use 'Answers' button to set answers for selected option.";
+            }
+        }
+        @RenderHelper.InfoButtonMyColor(info,
+            "myhmargin")
+
+        <input type="submit" class="btn btn-success mycolor" value="Save question" />
+    </div>
+
+    @Html.HiddenFor(x => x.Section.Id)
+    @Html.HiddenFor(x => x.Question.Id)
+    @Html.HiddenFor(x => x.Quiz.Id)
+    <input type="hidden" name="_XmlModel.MatchingType" value="@type" />
+
+    <div class="form-inline form-group myhmargin">
+
+        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark" })
+
+        <span class="myhmargin">
+            <strong>Add option:</strong>
+
+            @RenderHelper.AddOptionButton("addRow")
+        </span>
+
+        <span class="myhmargin">
+            <strong>Add answer:</strong>
+
+            @RenderHelper.AddOptionButton("addColumn")
+        </span>
+
+    </div>
+
+    <div class="form-group myhmargin">
+
+        @Html.TextAreaFor(x => x.Question.Text, new { @class = "form-control", placeholder = "Question text" })
+
+    </div>
+
+    <hr class="myhr" />
+
+    <div class="row">
+
+        <div class="col-sm-6">
+
+            <ul class="list-group test" id="rowsMatching">
+
+                @if (Model._XmlModel != null)
+                {
+                    for (int i = 0; i < Model._XmlModel.Rows.Count(); ++i)
+                    {
+                        <li class="rowOption list-group-item removeContainer sortableitem" style="height:150px;">
+
+                            @Html.HiddenFor(x => x._XmlModel.Rows[i].Id)
+
+                            <div class="row myhmargin">
+
+                                <div class="form-group pull-left my70">
+                                    @Html.TextBoxFor(x => x._XmlModel.Rows[i].Text, new { @class = "form-control", placeholder = "Option text" })
+                                </div>
+
+                                <div class="pull-right">
+                                    @RenderHelper.RemoveOptionButton("removeRowMatching")
+                                </div>
+                                
+                                @if (Model._XmlModel.MatchingType == XmlMatchingType.Multy)
+                                {
+                                    <div class="pull-right myhmargin">
+                                        <button class="btn btn-default btn-answers" type="button">
+                                            Answers
+                                        </button>
+                                    </div>
+                                }
+
+                            </div>
+
+                            <div class="form-group">
+                                @Html.TextAreaFor(x => x._XmlModel.Rows[i].Comment, new { @class = "form-control", placeholder = "Comment" })
+                            </div>
+
+                        </li>
+                    }
+
+                }
+
+            </ul>
+
+        </div>
+
+        <div class="col-sm-6">
+
+            <ul class="list-group test" id="columnsMatching">
+
+                @if (Model._XmlModel != null)
+                {
+                    for (int i = 0; i < Model._XmlModel.Columns.Count(); ++i)
+                    {
+                        <li class="list-group-item removeContainer sortableitem" style="height:150px;">
+
+                            @Html.HiddenFor(x => x._XmlModel.Columns[i].Id)
+
+                            <div class="row myhmargin">
+
+                                <div class="pull-left my80">
+                                    @Html.TextBoxFor(x => x._XmlModel.Columns[i].Text, new { @class = "form-control" })
+                                </div>
+
+                                <div class="pull-right">
+                                    @RenderHelper.RemoveOptionButton("removeColumnMatching")
+                                </div>
+
+                                @if (Model._XmlModel.MatchingType == XmlMatchingType.Multy)
+                                {
+                                    <div class="columns_container">
+                                        @foreach (var row in Model._XmlModel.Rows)
+                                        {
+                                            <div class="hidden" id="@row.Id @Model._XmlModel.Columns[i].Id">
+                                                <div class="checkbox pull-right center">
+                                                    @RenderHelper.CheckBoxSimple("Ids",
+                                                        Model._XmlModel.Answers.Contains(
+                                                            new XmlKeyValuePair<int, int>(row.Id, Model._XmlModel.Columns[i].Id)
+                                                        ),
+                                                        row.Id + " " + Model._XmlModel.Columns[i].Id
+                                                    )
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                            </div>
+
+                        </li>
+                    }
+                }
+
+            </ul>
+
+        </div>
+
+    </div>
+}
+
+<div class="hidden">
+
+    <li style="height:150px;" class="toremove list-group-item removeContainer sortableitem" id="rowMatching">
+
+        <input type="hidden" />
+
+        <div class="row myhmargin">
+
+            <div class="form-group pull-left my70">
+                <input type="text" class="form-control" placeholder="Option text" />
+            </div>
+
+            <div class="pull-right">
+                @RenderHelper.RemoveOptionButton("removeRowMatching")
+            </div>
+
+            @if (Model.Question.Type == QuestionType.MatchingMulty)
+            {
+                <div class="pull-right myhmargin">
+                    <button type="button" class="btn btn-default btn-answers">
+                        Answers
+                    </button>
+                </div>
+            }
+
+        </div>
+
+        <div class="form-group">
+            <textarea class="form-control" placeholder="Comment" />
+        </div>
+
+    </li>
+
+</div>
+
+<div class="hidden">
+
+    <li style="height:150px;" id="columnMatching" class="list-group-item removeContainer sortableitem">
+
+        <input type="hidden" />
+
+        <div class="row myhmargin">
+
+            <div class="pull-left my80">
+                <input type="text" class="form-control" />
+            </div>
+
+            <div class="pull-right">
+                @RenderHelper.RemoveOptionButton("removeColumnMatching")
+            </div>
+
+            @if (Model.Question.Type == QuestionType.MatchingMulty)
+            {
+                <div class="toremove">
+
+                </div>
+            }
+
+        </div>
+
+    </li>
+
+</div>
+
+<div class="hidden" id="boxSample">
+    <div class="checkbox pull-right center">
+        @RenderHelper.CheckBoxSimple("Ids", false, "")
+    </div>
+</div>
+
+@if (Model._XmlModel != null)
+{
+    <script>
+
+        _RowId = @Model._XmlModel.Rows.Max(x=>x.Id) + 1;
+
+        _ColId = @Model._XmlModel.Columns.Max(x=>x.Id) + 1;
+
+    </script>
+}

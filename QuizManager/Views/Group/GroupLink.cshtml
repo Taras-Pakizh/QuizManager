@@ -1,0 +1,88 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model GroupLinkView
+@{
+    ViewBag.Title = "GroupLink";
+}
+
+    
+    <div class="well mywell row">
+
+        <div class="pull-left myhmargin">
+
+            @RenderHelper.Back(Url.Action("MyGroups", "Group"))
+
+        </div>
+
+        <div class="pull-left myhmargin">
+            <h4>Group name:<strong>@Model.Group.Name</strong></h4>
+        </div>
+
+    </div>
+
+    @if (Model.IsRefExist)
+    {
+        <div class="form-inline myhmargin">
+
+            <label>Exist link: </label>
+
+            <input id="link" type="text" value="@Model.Link" class="form-control" />
+
+            <button type="button" class="copy-link btn btn-info mycolor">Copy Link</button>
+
+        </div>
+    }
+
+    <br />
+
+    <div class="form-inline myhmargin">
+
+        <div class="form-group">
+            @using (Html.BeginForm("GetLink", "Group", FormMethod.Post))
+            {
+                <div class="form-group">
+                    @Html.TextBoxFor(x => x.Reference.Deadline, "{0:yyyy-MM-ddTHH:mm}",
+                        new { @class = "form-control", type = "datetime-local" })
+                </div>
+
+                @Html.HiddenFor(x=>x.Group.Id)
+
+                <input type="submit" class="btn btn-info mycolor" value="Generate link" />
+            }
+        </div>
+
+        @if (Model.IsRefExist)
+        {
+            <div class="form-group">
+                @using (Html.BeginForm("DeleteLink", "Group", FormMethod.Get))
+                {
+                    <input type="hidden" name="Id" value="@Model.Reference.Id" />
+                    <input type="submit" class="btn btn-danger mycolor" value="Delete link" />
+                }
+            </div>
+        }
+
+    </div>
+
+
+
+@section scripts
+{
+    <script>
+
+        $(document).on('click', 'button.copy-link', function () {
+
+            var link = document.getElementById('link');
+
+            link.select();
+            link.setSelectionRange(0, 99999);
+
+            document.execCommand("copy");
+
+            alert("Link is copied to clipboard: " + link.value);
+
+        });
+
+    </script>
+}

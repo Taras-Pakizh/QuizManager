@@ -7,39 +7,36 @@
     ViewBag.Title = "Open";
 }
 
-<div class="text-center">
+<div class="well mywell row">
 
-    <h2>Constructor</h2>
+    <div class="form-inline row myhmargin">
+        <div class="pull-left myhmargin">
 
-</div>
-
-<div class="container">
-
-    <div class="row well">
-
-        <div class="pull-left form-inline">
-
-            <label for="Name">Section:</label>
-
-            <h4>@Model.Name</h4>
+            @RenderHelper.Back(Url.Action("Sections", "Constructor") + "?id=" + Model.Quiz.Id)
 
         </div>
 
-        <div class="pull-right">
+        <div class="pull-left myhmargin">
+
+            <h4><strong>Section:</strong>@Model.Name</h4>
+
+        </div>
+
+        <div class="pull-right myhmargin">
 
             @using (Html.BeginForm("EditSection", "Constructor", FormMethod.Get))
             {
                 <input type="hidden" value="@Model.Id" name="id" />
-                <input type="submit" class="btn btn-default" value="Edit" />
+                <input type="submit" class="btn btn-warning mycolor" value="Edit section" />
             }
 
         </div>
-
     </div>
 
-    <div class="row well">
+    <br />
 
-        <div class="pull-left">
+    <div class="row form-inline myhmargin">
+        <div class="pull-left myhmargin">
 
             @using (Ajax.BeginForm("Question", new AjaxOptions() { UpdateTargetId = "redactor" }))
             {
@@ -50,26 +47,20 @@
 
         </div>
 
-        <div class="pull-right">
+        <div class="pull-right myhmargin">
 
             @using (Ajax.BeginForm("AddQuestion", new AjaxOptions() { UpdateTargetId = "redactor" }))
             {
                 <input type="hidden" name="id" value="@Model.Id" />
 
-                <input type="submit" class="btn btn-success addquestion" value="Add" />
+                <input type="submit" class="btn btn-warning mycolor addquestion" value="New question" />
             }
 
         </div>
-
     </div>
-
+    
 </div>
 
-<div id="redactor">
+<div id="redactor" class="myhmargin">
 
-</div>
-
-<div class="container">
-
-    @RenderHelper.Back(Url.Action("Sections", "Constructor") + "?id=" + Model.Quiz.Id)
 </div>

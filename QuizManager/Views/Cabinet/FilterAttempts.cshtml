@@ -1,0 +1,140 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.Logic;
+@model AttemptFilterView
+
+@{
+    var attemptView = new TableView()
+    {
+        data = Model.Data.Select(x => new
+        {
+            Quiz = x.Quiz.Name,
+            Mark = x.Mark,
+            Time = x.Time,
+            UserName = x.User.UserName,
+            Email = x.User.Email,
+        }),
+        HeaderNames = new List<string>()
+        {
+            "Quiz", "User", "Email", "Time of passing", "Mark"
+        },
+        PropertyNames = new List<string>()
+        {
+            "Quiz", "UserName", "Email", "Time", "Mark"
+        },
+        Links = Model.Data.Select(y => new Dictionary<string, string>()
+        {
+            { "Open", Url.Action("GetAttepmt", "Cabinet") + "?id=" + y.Id }
+        }).ToList()
+    };
+}
+
+
+@using (Ajax.BeginForm("FilterAttempts", null,
+    new AjaxOptions() { UpdateTargetId = "attemptTable" },
+    new { }))
+{
+    var quizSelectList = new SelectList(Model.Quizzes, "Id", "Name");
+    var groupSelectList = new SelectList(Model.Groups, "Id", "Name");
+    var userSelectList = new SelectList(Model.Users, "Id", "UserName");
+
+    if (Model.Filters.Quiz != null && Model.Quizzes.Count() != 0)
+    {
+        quizSelectList.Single(x => x.Value == Model.Filters.Quiz.Id.ToString()).Selected = true;
+    }
+    if (Model.Filters.Group != null && Model.Groups.Count() != 0)
+    {
+        groupSelectList.Single(x => x.Value == Model.Filters.Group.Id.ToString()).Selected = true;
+    }
+    if (Model.Filters.User != null && Model.Users.Count() != 0)
+    {
+        userSelectList.Single(x => x.Value == Model.Filters.User.Id).Selected = true;
+    }
+
+    <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#filters">Filters</button>
+
+    <input type="submit" class="btn btn-info mycolor" name="Command"  value="Reset" />
+
+    <div id="filters" class="collapse">
+        <br />
+
+        <div class="form-group">
+            @Html.DropDownListFor(x => x.Filters.Quiz.Id,
+                quizSelectList, "Your quizes", new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.DropDownListFor(x => x.Filters.Group.Id,
+                groupSelectList, "Your groups", new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.DropDownListFor(x => x.Filters.User.Id,
+                userSelectList, "Your students", new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("After date:")
+            @Html.TextBoxFor(x => x.Filters.MinLimit, "{0:yyyy-MM-dd}",
+                new { type = "date", @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Before date:")
+            @Html.TextBoxFor(x => x.Filters.MaxLimit, "{0:yyyy-MM-dd}",
+                new { type = "date", @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.Filters.MinMark,
+                new { type = "number", step = "0.01", min = "0", @class = "form-control", placeholder = "min mark" })
+        </div>
+
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.Filters.MaxMark,
+                new { type = "number", step = "0.01", min = "0", @class = "form-control", placeholder = "max mark" })
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Filter" class="btn btn-info mycolor" />
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        @Html.Partial("TableByProperty", attemptView)
+    </div>
+
+    <div class="text-center">
+        <span id="navigation">
+
+            @Html.HiddenFor(x => x.Filters.Page)
+
+            @if (Model.Filters.Page != 1)
+            {
+                <input type="submit" name="Navigation" value="Back" class="btn btn-info mycolor" />
+            }
+
+            @for (int i = 1; i <= Model.PagesCount; ++i)
+            {
+                if (Model.Filters.Page == i)
+                {
+                    <input type="button" name="Navigation" value="@i" class="btn btn-info mycolor" />
+                }
+                else
+                {
+                    <input type="submit" name="Navigation" value="@i" class="btn btn-default" />
+                }
+            }
+
+            @if (Model.PagesCount != Model.Filters.Page)
+            {
+                <input type="submit" name="Navigation" value="Next" class="btn btn-info mycolor" />
+            }
+
+        </span>
+    </div>
+}
+
+
+

@@ -16,7 +16,9 @@ namespace QuizManager.DBModels
 
         public virtual Quiz Quiz { get; set; }
 
-        public SectionType? Type { get; set; }
+        public int Difficulty { get; set; }
+
+        public SectionTimeLimitType TimeLimitType { get; set; }
 
         public string Name { get; set; }
 

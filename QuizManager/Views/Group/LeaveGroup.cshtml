@@ -1,0 +1,27 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model Group
+@{
+    ViewBag.Title = "LeaveGroup";
+}
+
+<br />
+
+<div class="mycenter">
+
+    <div class="form-group">
+        @Html.Label("Group name:")
+        @Html.TextBoxFor(x => x.Name, new { @class = "form-control", disabled = "disabled" })
+    </div>
+
+    @using (Html.BeginForm("LeaveGroup", "Group", FormMethod.Post))
+    {
+        @Html.HiddenFor(x => x.Id)
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-danger mycolor" value="Leave group" />
+        </div>
+    }
+
+</div>

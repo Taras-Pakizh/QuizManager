@@ -1,0 +1,50 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@using QuizManager.XmlModels;
+
+@model TestView
+
+@{
+    var tModel = Model.Model as XmlTextInput;
+
+    var qPath = "SectionData[" + Model.Index + "].QuestionId";
+
+    var nPath = "SectionData[" + Model.Index + "].Answers";
+
+    var input = "";
+
+    if(Model?.Save?.Answers != null)
+    {
+        input = Model.Save.Answers[0];
+    }
+}
+
+@Html.Hidden(qPath, Model.Question.Id)
+
+<div class="well questionwell">
+
+    <div class="pull-right myhmargin">
+
+        @RenderHelper.InfoButton("Input text that would match the empty space in text")
+
+    </div>
+
+    <h4>@Model.Question.Text</h4>
+
+</div>
+
+<div class="form-group myhmargin">
+
+    <h4>
+        @tModel.Text
+    </h4>
+
+</div>
+
+<div class="form-group">
+
+    <input class="form-control" name="@nPath" 
+           type="text" placeholder="input" value="@input" />
+
+</div>

@@ -17,5 +17,9 @@ namespace QuizManager.DBModels
 
         [DataType(DataType.DateTime)]
         public DateTime Deadline { get; set; }
+
+        public int AttemptCount { get; set; }
+
+        public ReferenceType Type { get; set; }
     }
 }

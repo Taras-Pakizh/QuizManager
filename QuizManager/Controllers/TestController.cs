@@ -12,6 +12,7 @@ using System.Web.Mvc;
 
 namespace QuizManager.Controllers
 {
+    [Authorize]
     public class TestController : AbstractController
     {
         public TestController() : base()
@@ -28,13 +29,81 @@ namespace QuizManager.Controllers
         public ActionResult GetTest(string link)
         {
             var result = cx.QuizReferences.Find(link);
-
+            
             if(result == null)
             {
                 return HttpNotFound();
             }
 
+            if((result.Type == ReferenceType.Limited && 
+                result.AttemptCount <= 0) ||
+                result.Deadline > DateTime.Now)
+            {
+                cx.QuizReferences.Remove(result);
+
+                cx.SaveChanges();
+
+                return HttpNotFound();
+            }
+
+            if(result.Type == ReferenceType.Limited)
+                result.AttemptCount--;
+
+            cx.SaveChanges();
+
+            Session["AttemptType"] = AttempType.ByReference;
+
             return RedirectToAction("TestStart", new { id = result.Quiz.Id });
+        }
+
+        /// <summary>
+        /// Group allowance - redirect to quiz
+        /// </summary>
+        [HttpGet]
+        public ActionResult GetTestAllowance(int? id)
+        {
+            var model = cx.GroupAllowances.Find(id);
+
+            if(model == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = model.Group;
+
+            var CurrentUser = UserManager.FindByName(User.Identity.Name);
+
+            if (!group.ApplicationUsers.Any(x=>x.Id == CurrentUser.Id))
+            {
+                return HttpNotFound();
+            }
+
+            //attemptsCount check
+            if(model.Type == ReferenceType.Limited)
+            {
+                var attempts = cx.QuizAttempts.
+                    Count(x => x.Type == AttempType.ByGroup &&
+                        x.Group.Id == group.Id &&
+                        x.User.Id == CurrentUser.Id);
+
+                if(attempts >= model.AttemptCount)
+                {
+                    Session["quizAllowance"] = "Quiz attempts is over";
+
+                    return RedirectToAction("ViewGroup", "Group", new { id = group.Id });
+                }
+            }
+            if(model.Deadline < DateTime.Now)
+            {
+                Session["quizAllowance"] = "Deadline: " + model.Deadline.ToString() + " is over";
+
+                return RedirectToAction("ViewGroup", "Group", new { id = group.Id });
+            }
+
+            Session["AttemptType"] = AttempType.ByGroup;
+            Session["GroupId"] = model.Group.Id;
+
+            return RedirectToAction("TestStart", new { id = model.Quiz.Id });
         }
 
         /// <summary>
@@ -61,22 +130,40 @@ namespace QuizManager.Controllers
                 Session["page"] = 0;
             }
 
-            var section = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).
+            SectionView model = null;
+
+            Section section = null;
+
+            if(quiz.Type == QuizType.Adaptive)
+            {
+                section = helper.GetSection_Adaptive(quiz, null, null, out bool isFinish, true);
+
+                var questions = helper.GetRandomSectionQuestions(section.Id);
+
+                var testViews = helper.CreateTestViews(questions, quiz);
+
+                model = new SectionView()
+                {
+                    QuizId = quiz.Id,
+                    SectionId = section.Id,
+                    Tests = testViews,
+                    Section = section
+                };
+
+                Session["save"] = new TestSave(cx);
+            }
+            else
+            {
+                section = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).
                     OrderBy(y => y.Order).
                     First();
 
-            var questions = helper.GetRandomSectionQuestions(section.Id);
+                var testSave = helper.CreateWholeTest(quiz);
 
-            var testViews = helper.CreateTestViews(questions, quiz);
+                Session["save"] = testSave;
 
-            var model = new SectionView()
-            {
-                QuizId = quiz.Id,
-                SectionId = section.Id,
-                Tests = testViews,
-            };
-
-            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).ToList();
+                model = testSave.Saves[section.Id].View;
+            }
 
             model = helper.SetNavigation(model, section, quiz);
 
@@ -87,41 +174,79 @@ namespace QuizManager.Controllers
 
         [HttpPost]
         /// <summary>
-        /// Pagination - future headers of quiz
-        /// Partial
-        /// Saving section which is scrolling
+        /// For perSection testing
+        /// Saving sections in Session
         /// </summary>
         public ActionResult TestSection(SectionView view)
         {
-            if (Session["save"] == null)
-            {
-                Session["save"] = new TestSave(cx);
-            }
+            //saving session
 
             var testSave = (TestSave)Session["save"];
+
+            view.Section = cx.Sections.Find(view.SectionId);
 
             testSave.Update(view);
 
             Session["save"] = testSave;
 
+            //choosing action
+
             var quiz = cx.Quizzes.Find(view.QuizId);
 
             var prevSection = cx.Sections.Find(view.SectionId);
 
-            Section section = null;
+            helper.ChooseAction(prevSection, Request.Form["btnSubmit"], testSave,
+                out bool isFinish, out Section section);
 
-            if (Request.Form["submit"] == "Next")
+            //finish view
+            if (isFinish)
             {
-                section = cx.Sections.Where(y=>y.Quiz.Id == quiz.Id).Single(x => x.Order == prevSection.Order + 1);
+                var finishView = new FinishView()
+                {
+                    Quiz = quiz,
+                };
+
+                var sectionAnswersList = new List<SectionAnswersView>();
+
+                foreach (var item in testSave.Saves)
+                {
+                    var sectionAnswers = new SectionAnswersView()
+                    {
+                        Section = cx.Sections.Find(item.Key),
+                        QuestionIndex_IsInit = new Dictionary<int, bool>()
+                    };
+
+                    int index = 1;
+
+                    foreach (var questionAnswer in item.Value.Answers)
+                    {
+                        sectionAnswers.QuestionIndex_IsInit.Add(
+                            index,
+                            ((IParseAnswer)questionAnswer.Value).IsValid()
+                        );
+                        index++;
+                    }
+
+                    sectionAnswersList.Add(sectionAnswers);
+                }
+
+                finishView.SectionAnswers = sectionAnswersList;
+
+                ModelState.Clear();
+
+                bool isEnded = false;
+
+                if (Request.Form["btnSubmit"] == "QuizTime" || Request.Form["btnSubmit"] == "SectionTime")
+                {
+                    isEnded = true;
+                }
+
+                ViewBag.isEnded = isEnded;
+
+                return PartialView("Finish", finishView);
             }
-            else if(Request.Form["submit"] == "Previous")
-            {
-                section = cx.Sections.Where(y => y.Quiz.Id == quiz.Id).Single(x => x.Order == prevSection.Order - 1);
-            }
-            else if(Request.Form["submit"] == "Finish")
-            {
-                return Finish(new FinishView() { Quiz = quiz });
-            }
+
+            //creating model
 
             SectionView model = null;
 
@@ -135,6 +260,7 @@ namespace QuizManager.Controllers
                 {
                     QuizId = quiz.Id,
                     SectionId = section.Id,
+                    Section = section
                 };
 
                 var questions = helper.GetRandomSectionQuestions(section.Id);
@@ -142,55 +268,117 @@ namespace QuizManager.Controllers
                 model.Tests = helper.CreateTestViews(questions, quiz);
             }
 
-            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).OrderBy(y => y.Order).ToList();
-
             model = helper.SetNavigation(model, section, quiz);
 
             ModelState.Clear();
 
             return PartialView("TestSection", model);
         }
-
-        /// <summary>
-        /// Page for sumbiting finish of test
-        /// shows list of questions and is they initialized
-        /// </summary>
         [HttpPost]
-        public ActionResult Finish(FinishView view)
+        public ActionResult TestQuestion(PerQuestionView view)
         {
-            var sectionAnswersList = new List<SectionAnswersView>();
-
-            view.Quiz = cx.Quizzes.Find(view.Quiz.Id);
-
+            //saving session
             var testSave = (TestSave)Session["save"];
+            view.Question = cx.Questions.Find(view.Question.Id);
+            testSave.Update(view);
+            Session["save"] = testSave;
 
-            foreach(var item in testSave.Saves)
+            //choosing action
+            helper.ChooseAction(
+                view.Question, 
+                Request.Form["btnSubmit"], 
+                testSave,
+                out bool isFinish, out Question nextQuestion);
+
+            //finish view
+            if (isFinish)
             {
-                var sectionAnswers = new SectionAnswersView()
+                var finishView = new FinishView()
                 {
-                    Section = cx.Sections.Find(item.Key),
-                    QuestionIndex_IsInit = new Dictionary<int, bool>()
+                    Quiz = view.Question.Quiz,
                 };
 
-                int index = 1;
+                var usedSections = new List<Section>();
 
-                foreach(var questionAnswer in item.Value.Answers)
+                foreach(var question in testSave.QuestionSaves.
+                    Select(x => cx.Questions.Find(x.Key)).
+                    ToList())
                 {
-                    sectionAnswers.QuestionIndex_IsInit.Add(
-                        index, 
-                        ((IParseAnswer)questionAnswer.Value).IsValid()
-                    );
-                    index++;
+                    if(usedSections.Any(x=>x.Id == question.Section.Id))
+                    {
+                        continue;
+                    }
+                    usedSections.Add(question.Section);
                 }
 
-                sectionAnswersList.Add(sectionAnswers);
+                var sectionAnswersList = new List<SectionAnswersView>();
+
+                foreach (var section in usedSections)
+                {
+                    var sectionAnswers = new SectionAnswersView()
+                    {
+                        Section = section,
+                        QuestionIndex_IsInit = new Dictionary<int, bool>()
+                    };
+
+                    int index = 1;
+
+                    var sectionIds = cx.Questions.
+                        Where(x => x.Section.Id == section.Id).
+                        Select(y => y.Id).ToList();
+
+                    foreach(var questionAnswer in testSave.QuestionSaves.
+                        Where(x => sectionIds.Contains(x.Key)).ToList())
+                    {
+                        sectionAnswers.QuestionIndex_IsInit.Add(
+                            index,
+                            ((IParseAnswer)questionAnswer.Value).IsValid()
+                        );
+                        index++;
+                    }
+
+                    sectionAnswersList.Add(sectionAnswers);
+                }
+
+                finishView.SectionAnswers = sectionAnswersList;
+
+                ModelState.Clear();
+
+                bool isEnded = false;
+
+                if (Request.Form["btnSubmit"] == "QuizTime" || 
+                    Request.Form["btnSubmit"] == "QuestionTime")
+                {
+                    isEnded = true;
+                }
+
+                ViewBag.isEnded = isEnded;
+
+                return PartialView("Finish", finishView);
             }
 
-            view.SectionAnswers = sectionAnswersList;
+            //create model
+            PerQuestionView model = null;
+
+            if (testSave.QuestionSaves.ContainsKey(nextQuestion.Id))
+            {
+                model = testSave.QuestionSaves[nextQuestion.Id].View;
+            }
+            else
+            {
+                model = new PerQuestionView()
+                {
+                    Question = nextQuestion,
+                };
+
+                model.Test = helper.CreateTestView(nextQuestion);
+            }
+
+            model = helper.SetNavigation(model, nextQuestion, testSave);
 
             ModelState.Clear();
 
-            return PartialView("Finish", view);
+            return PartialView("TestSection", model);
         }
 
         [HttpPost]
@@ -244,8 +432,14 @@ namespace QuizManager.Controllers
             {
                 Quiz = quiz,
                 Time = DateTime.Now,
-                User = cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
+                User = cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id),
+                Type = (AttempType)Session["AttemptType"],
             };
+
+            if(attemp.Type == AttempType.ByGroup)
+            {
+                attemp.Group = cx.Groups.Find((int)Session["GroupId"]);
+            }
 
             var answers = new List<Answer>();
 
@@ -253,36 +447,14 @@ namespace QuizManager.Controllers
             {
                 foreach(var questionIdAnswers in sectionSave.Value.Answers)
                 {
-                    var answer = new Answer()
-                    {
-                        Question = cx.Questions.Find(questionIdAnswers.Key),
-                        XmlObject = XmlBase.SerializeAbstract(questionIdAnswers.Value),
-                    };
-
-                    var question = cx.Questions.Find(questionIdAnswers.Key);
-
-                    XmlBase questionXml = XmlBase.Deserialize(question.XmlObject, question.TypeName);
-
-                    double mark = 0;
-
-                    if (((IParseAnswer)questionIdAnswers.Value).IsValid())
-                    {
-                        mark = ((IXmlTask)questionXml).Compare(questionIdAnswers.Value, question.Value);
-                    }
-
-                    answer.Mark = mark;
-
-                    answer.TypeName = ((IAnswerName)questionXml).GetTypeName();
+                    var answer = helper.ExamineQuestion(
+                        cx.Questions.Find(questionIdAnswers.Key), questionIdAnswers.Value);
 
                     answers.Add(answer);
                 }
             }
 
-            var scoredPoints = answers.Sum(x => x.Mark);
-
-            var wholePoints = cx.Questions.Where(x => x.Quiz.Id == quiz.Id).Sum(y => y.Value);
-
-            attemp.Mark = Math.Round(quiz.Value * (scoredPoints / wholePoints), 2);
+            attemp.Mark = helper.ExamineQuiz(quiz, answers);
 
             cx.QuizAttempts.Add(attemp);
 

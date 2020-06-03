@@ -1,0 +1,12 @@
+﻿@model string
+@{
+    var tabs = new Dictionary<string, string>()
+    {
+        {"Opened for me", Url.Action("OpenedGroups", "Group")},
+        {"Attemps", Url.Action("Attempts", "Cabinet")}
+    };
+}
+
+@RenderHelper.VerticalTabs(tabs, Model)
+
+

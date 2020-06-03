@@ -5,153 +5,245 @@
 
 @model QuizSectionsView
 
-@{ 
+@{
     var helper = (ControllerHelper)ViewBag.helper;
 }
 
-<div class="well row">
+<div class="well row mywell form-inline">
 
-    <div class="pull-left form-inline">
+    <div class="pull-left myhmargin">
 
-        <label for="Name">Quiz:</label>
-
-        <h4>@Model.Quiz.Name</h4>
+        @RenderHelper.Back(Url.Action("Index", "Cabinet"))
 
     </div>
 
-    <div class="pull-right">
+    <div class="pull-left myhmargin">
+
+        <h4><strong>Quiz: </strong>@Model.Quiz.Name</h4>
+
+    </div>
+
+    <div class="pull-right myhmargin">
 
         @using (Html.BeginForm("Edit", "Constructor", FormMethod.Get))
         {
             <input type="hidden" value="@Model.Quiz.Id" name="id" />
-            <input type="submit" class="btn btn-warning" value="Edit" />
+            <input type="submit" class="btn btn-warning mycolor" value="Edit quiz" />
         }
 
     </div>
 
 </div>
 
-<div id="sections">
+<div id="sections" class="myhmargin">
+
+    <div class="btn-group-justified myhmargin">
+        <div class="btn-group">
+            <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#newsection">
+                Create Section
+            </button>
+        </div>
+    </div>
+    <div id="newsection" class="collapse myhmargin">
+        <br />
+        @using (Html.BeginForm("AddSection", "Constructor", FormMethod.Post))
+        {
+            @Html.HiddenFor(x => x.Quiz.Id)
+            @Html.HiddenFor(x => x.NewSection.Quiz.Id, new { Value = Model.Quiz.Id })
+
+            <div class="form-group">
+                @Html.Label("Name:")
+                @Html.TextBoxFor(x => x.NewSection.Name, new { @class = "form-control" })
+            </div>
+
+            if (Model.Quiz.Type == QuizType.Adaptive &&
+                Model.Quiz.TestingType == QuizTestingType.PerSection)
+            {
+                <div class="form-group">
+                    @Html.Label("Difficulty:")
+                    @Html.TextBoxFor(x => x.NewSection.Difficulty, new { @class = "form-control", type = "number", min = "0" })
+                </div>
+            }
+
+            if (Model.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited)
+            {
+                <div class="form-group">
+                    @Html.Label("Time limit type:")
+                    @Html.DropDownListFor(x => x.NewSection.TimeLimitType, Html.GetSelectList(typeof(SectionTimeLimitType)), new { @class = "form-control", id = "enum" })
+                </div>
+
+                <div class="form-group">
+                    @Html.Label("Time:")
+                    @Html.TextBoxFor(x => x.NewSection.TimeLimit, new { @class = "form-control", type = "time", step = "1", id = "timelimit" })
+                </div>
+            }
+
+            <div class="form-group">
+                @Html.Label("Questions count:")
+                @Html.TextBoxFor(x => x.NewSection.QuestionCount, new { @class = "form-control", type = "number", min = "1" })
+            </div>
+
+            <div class="form-group">
+                <input type="submit" class="btn btn-info mycolor" value="Add section" />
+            </div>
+        }
+    </div>
+
+    <br />
 
     @using (Html.BeginForm("SaveOrder", "Constructor", FormMethod.Post))
     {
         <div class="list-group" id="list">
 
-            <h3>Sections:</h3>
+            <div class="row myhmargin">
 
-            @foreach (var item in Model.Sections.OrderBy(x=>x.Order).ToList())
+                <div class="pull-left myhmargin">
+                    <h3><strong>Sections:</strong></h3>
+                </div>
+
+                <div class="pull-right myhmargin">
+                    @RenderHelper.InfoButtonMyColor("Drag section to order them in proper way. Click on section to 'Open' or 'Delete'.")
+                </div>
+
+            </div>
+
+            @foreach (var item in Model.Sections.OrderBy(x => x.Order).ToList())
             {
-                <li class="list-group-item asection form-inline">
+                <li class="list-group-item row myhmargin asection">
 
                     @Html.HiddenFor(x => x.SectionIds, new { Value = item.Id })
 
-                    <span>Name: <strong>@item.Name</strong></span><br />
-                    <span>Type: <strong>@item.Type.ToString()</strong></span><br />
-                    <span>Time limit: <strong>@item.TimeLimit.Value.ToString()</strong></span><br />
-                    <span>Question count: <strong>@item.QuestionCount</strong></span><br />
+                    <div class="pull-left myhmargin">
+                        <h4>Name: <strong>@item.Name</strong></h4>
+                        @if (Model.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited)
+                        {
+                            <h4>Time limit Type: <strong>@item.TimeLimitType.ToString()</strong></h4>
+                            
+                            if (item.TimeLimitType == SectionTimeLimitType.Limited)
+                            {
+                                <h4>Time limit: <strong>@item.TimeLimit.Value.ToString()</strong></h4>
+                            }
+                        }
+                        @if (Model.Quiz.Type == QuizType.Adaptive &&
+                            Model.Quiz.TestingType == QuizTestingType.PerSection)
+                        {
+                            <h4>Difficulty: <strong>@item.Difficulty</strong></h4>
+                        }
+                        <h4>Question count: <strong>@item.QuestionCount</strong></h4>
 
-                    @RenderHelper.UpArrow("sectionUp")
-                    @RenderHelper.DownArrow("sectionDown")
+                        @{
+                            var isValid = helper.IsSectionValid(item.Id, out List<string> errors);
+                        }
 
-                    <button type="button" class="btn btn-default hidden buttons" data-toggle="modal" data-target="#@item.Id">Delete</button>
-                    <div class="modal fade" id="@item.Id" role="dialog">
-                        <div class="modal-dialog">
-
-                            <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Alert</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Delete this Section?</p>
-                                </div>
-                                <div class="modal-footer">
-                                    @RenderHelper.ActionWithParameter(Url.Action("DeleteSection", "Constructor"), item.Id.ToString(), "Delete", "")
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    @RenderHelper.ActionWithParameter(Url.Action("Open", "Constructor"), item.Id.ToString(), "Open", "hidden buttons")
-
-                    @{
-                        var isValid = helper.IsSectionValid(item.Id, out List<string> errors);
-                    }
-
-                    @if (!isValid)
-                    {
-                        <br /><br />
-
-                        <div class="panel-group">
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <h4 class="panel-title">
-                                        <a data-toggle="collapse" href="#@item.Name">This section contains errors. Fix it, before using quiz</a>
-                                    </h4>
-                                </div>
-                                <div id="@item.Name" class="panel-collapse collapse">
-                                    <div class="list-group">
-                                        @foreach (var error in errors)
-                                        {
-                                            <div class="list-group-item alert alert-danger">
-                                                @error
-                                            </div>
-                                        }
+                        @if (!isValid)
+                        {
+                            <div class="panel-group">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" href="#@item.Name">This section contains errors. Fix it, before using quiz</a>
+                                        </h4>
+                                    </div>
+                                    <div id="@item.Name" class="panel-collapse collapse">
+                                        <div class="list-group">
+                                            @foreach (var error in errors)
+                                            {
+                                                <div class="list-group-item alert alert-danger">
+                                                    @error
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        }
+
+                    </div>
+
+
+                    @*@RenderHelper.UpArrow("sectionUp")
+                        @RenderHelper.DownArrow("sectionDown")*@
+
+                    <div class="pull-right myhmargin">
+                        <button type="button" class="btn btn-info mycolor hidden buttons" data-toggle="modal" data-target="#@item.Id">Delete</button>
+                        <div class="modal fade" id="@item.Id" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Alert</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Delete this Section?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        @RenderHelper.ActionWithParameter(Url.Action("DeleteSection", "Constructor"), item.Id.ToString(), "Delete", "")
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
-                    }
+
+                        @RenderHelper.ActionWithParameter(Url.Action("Open", "Constructor"), item.Id.ToString(), "Open", "hidden buttons")
+
+                    </div>
 
                 </li>
             }
 
         </div>
 
-        <div class="hidden" id="saveButton">
+        <div id="saveButton" class="myhmargin">
 
-            @Html.HiddenFor(x=>x.Quiz.Id)
+            @Html.HiddenFor(x => x.Quiz.Id)
 
-            <input type="submit" class="btn btn-default" value="Save order" />
+            <input type="submit" class="btn btn-info mycolor" value="Save order" />
 
-        </div>
-    }
-
-    <br />
-
-    @using (Html.BeginForm("AddSection", "Constructor", FormMethod.Post))
-    {
-        <h3>New section:</h3>
-
-        @Html.HiddenFor(x=>x.Quiz.Id)
-
-        @Html.HiddenFor(x=>x.NewSection.Quiz.Id, new { Value=Model.Quiz.Id})
-
-        <div class="form-group">
-            @Html.Label("Name:")
-            @Html.TextBoxFor(x => x.NewSection.Name, new { @class = "form-control" })
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Type:")
-            @Html.EnumDropDownListFor(x => x.NewSection.Type, new { @class = "form-control" })
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Time:")
-            @Html.TextBoxFor(x => x.NewSection.TimeLimit, new { @class = "form-control", type = "time" })
-        </div>
-        
-        <div class="form-group">
-            @Html.Label("Questions count:")
-            @Html.TextBoxFor(x=>x.NewSection.QuestionCount, new { @class = "form-control", type = "number", min="1"})
-        </div>
-
-        <div class="form-group">
-            <input type="submit" class="btn btn-default" value="Add" />
         </div>
     }
 
 </div>
+
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
+
+                var val = enumList.value;
+
+                var timelimit = document.getElementById('timelimit');
+
+                if (val == "Limited") {
+                    //Limited
+                    timelimit.disabled = false;
+                    timelimit.required = false;
+                }
+                else {
+                    //NonLimited or SectionLimited or QuestionLimited
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}
+
+
+
+

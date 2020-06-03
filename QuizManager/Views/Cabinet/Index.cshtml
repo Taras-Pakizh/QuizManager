@@ -1,43 +1,48 @@
 ﻿@using QuizManager.Helpers;
 @using QuizManager.DBModels;
 @using QuizManager.ModelViews;
+@using QuizManager.Models;
 @model IEnumerable<Quiz>
 @{
     string SelectedTab = "My Quizs";
+    var data = (IEnumerable<SquereData>)ViewBag.QuizData;
 }
 
-<div class="container">
+<br />
 
-    <h2>Cabinet</h2>
+<div class="row">
 
-    <div class="row">
+    <div class="col-sm-4">
 
         @Html.Partial("CabinetPage", SelectedTab)
 
-        <div class="container col-sm-8">
+    </div>
 
-            <ul class="list-inline">
+    <div class="col-sm-8">
 
-                @foreach (var quiz in Model)
-                {
-                    <li style="margin:10px;">
+        <a href="@Url.Action("Add", "Constructor")" 
+           type="button" class="btn btn-info btn-lg btn-block myButton">
+            CREATE QUIZ
+        </a>
 
-                        @Html.CreateSquere(quiz.Name, quiz.Id, (IEnumerable<SquereData>)ViewBag.QuizData)
+        <hr class="myhr" />
 
-                    </li>
-                }
+        <ul class="list-inline list-scroll">
 
-            </ul>
+            @foreach (var quiz in Model)
+            {
+                <li style="margin:10px;">
 
-            <div class="pull-right">
+                    @RenderHelper.CreateSquere(quiz.Name, quiz.Id,
+                        data.Select(x=>x.Name).ToList(), data.Select(x=>x.Link).ToList())
+                     
+                </li>
+            }
 
-                @RenderHelper.PlusButton(Url.Action("Add", "Constructor"))
-
-            </div>
-
-        </div>
+        </ul>
 
     </div>
 
 </div>
+
 

@@ -1,51 +1,113 @@
 ﻿@using QuizManager.ModelViews;
 @using QuizManager.DBModels;
+@using QuizManager.Helpers;
 @{
     ViewBag.Title = "Edit";
 }
 @model QuizView
 
-<div class="container">
+<div class="mycenter">
+
+    <h2>Edit quiz:</h2>
 
     @using (Html.BeginForm("Edit", "Constructor", FormMethod.Post))
     {
-        <br />
-
-        <div class="form-group">
-            <h2>Quiz:</h2>
-        </div>
 
         @Html.HiddenFor(x => x.Id)
 
         <div class="form-group">
             @Html.LabelFor(x => x.Name)
-            @Html.TextBoxFor(x => x.Name, new { @class="form-control" })
+            @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
         </div>
 
         <div class="form-group">
             @Html.LabelFor(x => x.Type)
-            @Html.EnumDropDownListFor(x => x.Type, new { @class="form-control" })
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(x => x.UserData)
-            @Html.EnumDropDownListFor(x => x.UserData, new { @class="form-control" })
+            @Html.DropDownListFor(x => x.Type, Html.GetSelectList(typeof(QuizType), Model.Type), new { @class = "form-control" })
         </div>
 
         <div class="form-group">
             @Html.Label("Highest mark:")
-            @Html.TextBoxFor(x => x.Value, new { type = "number", min = "0.01", step = "0.01", @class="form-control" })
+            @Html.TextBoxFor(x => x.Value, new { type = "number", min = "0.01", step = "0.01", @class = "form-control" })
 
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Time limit type:")
+            @Html.DropDownListFor(x => x.TimeLimitType, Html.GetSelectList(typeof(QuizTimeLimitType), Model.TimeLimitType), new { @class = "form-control", id = "enum" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Testing type:")
+            @Html.DropDownListFor(x => x.TestingType, Html.GetSelectList(typeof(QuizTestingType), Model.TestingType), new { @class = "form-control", id = "testingtype" })
         </div>
 
         <div class="form-group">
             @Html.LabelFor(x => x.TimeLimit)
-            @Html.TextBoxFor(x => x.TimeLimit, new { type = "time", @class="form-control" })
+            @Html.TextBoxFor(x => x.TimeLimit, new { type = "time", @class = "form-control", id = "timelimit" })
         </div>
-        
+
         <div class="form-group">
-            <input type="submit" class="btn btn-default" value="Edit" />
+            <input type="submit" class="btn btn-info mycolor" value="Edit" />
         </div>
     }
 
 </div>
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
+
+                var val = enumList.value;
+
+                var timelimit = document.getElementById('timelimit');
+
+                var testingtype = document.getElementById('testingtype');
+
+                if (val == "Limited") {
+                    timelimit.disabled = false;
+                    timelimit.required = false;
+
+                    testingtype.disabled = false;
+                }
+                else if (val == "SectionLimited") {
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.setAttribute('disabled', 'disabled');
+                    testingtype.value = "PerSection";
+                }
+                else if (val == "QuestionLimited") {
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.setAttribute('disabled', 'disabled');
+                    testingtype.value = "PerQuestion";
+                }
+                else {
+                    //NonLimited
+                    timelimit.setAttribute('disabled', 'disabled');
+                    timelimit.setAttribute('required', 'required');
+
+                    testingtype.disabled = false;
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}
+
+
+

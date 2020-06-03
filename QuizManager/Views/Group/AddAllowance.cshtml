@@ -1,0 +1,92 @@
+﻿@using QuizManager.Helpers;
+@using QuizManager.DBModels;
+@using QuizManager.ModelViews;
+@model GroupAllowanceView
+
+@{
+    var quizSelectList = new SelectList(
+        Model.RestQuizzes, "Id", "Name");
+
+    Model.Allowance.Deadline = DateTime.Now.Date;
+}
+
+<br />
+
+<div class="mycenter">
+
+    @using (Html.BeginForm("AddAllowance", "Group", FormMethod.Post))
+    {
+        @Html.HiddenFor(x => x.Allowance.Group.Id)
+
+        <div class="form-group">
+            <h3>Group allowance</h3>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Quiz:")
+            @Html.DropDownListFor(x => x.Allowance.Quiz.Id, quizSelectList, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Deadline:")
+            @Html.TextBoxFor(x => x.Allowance.Deadline, "{0:yyyy-MM-ddTHH:mm:ss}",
+                new { @class = "form-control", type = "datetime-local" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Type")
+            @Html.EnumDropDownListFor(x => x.Allowance.Type, new { @class = "form-control", id = "enum" })
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Attempts count:")
+            @Html.TextBoxFor(x => x.Allowance.AttemptCount, new { @class = "form-control", type = "number", min = "0", id = "count" })
+        </div>
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-info mycolor" value="Add allowance" />
+        </div>
+    }
+
+</div>
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ChangeSelection() {
+                var enumList = document.getElementById('enum');
+
+                var val = enumList.value;
+
+                var count = document.getElementById('count');
+
+                if (val == 0) {
+                    //byreference
+                    count.setAttribute('min', 0);
+                    count.value = 0;
+                    count.setAttribute('disabled', 'disabled');
+                }
+
+                if (val == 1) {
+                    //bygroup
+                    count.setAttribute('min', 1);
+                    count.value = 1;
+                    count.disabled = false;
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#enum', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}
+
