@@ -14,32 +14,66 @@
 
 <div class="well questionwell">
 
-    <h4>Question:<strong>@Model.Question.Text</strong></h4>
-    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+    <h4>Question: <strong>@Model.Question.Text</strong></h4>
+    @if (Model.Question.Quiz.Type == QuizType.Adaptive &&
+        Model.Question.Quiz.TestingType == QuizTestingType.PerQuestion)
+    {
+        <h4>Difficulty: <strong>@Model.Question.Difficulty</strong></h4>
+    }
+    @if (Model.Question.Quiz.TimeLimitType == QuizTimeLimitType.QuestionLimited)
+    {
+        <h4>Time limit: <strong>@Model.Question.TimeLimit</strong></h4>
+    }
+    <h4>Mark: <strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
 
 </div>
 
 @if (XmlAnswer.Answer == XmlQuestion.Input)
 {
     <div class="alert alert-success">
-        <h4>
-            <strong>Correct answer - </strong>
-            <span>@XmlAnswer.Answer</span>
-        </h4>
-        <h4><strong>Comment: </strong>@XmlQuestion.Comment</h4>
+        <div class="form-inline">
+            <h4>
+                @XmlAnswer.Answer
+                <div class="pull-right">
+                    <i class="fa fa-lg fa-thumbs-up"></i>
+                </div>
+            </h4>
+        </div>
+        @if (!XmlQuestion.Comment.IsNullOrEmptry())
+        {
+            <div class="form-inline">
+                <h4>
+                    @XmlQuestion.Comment
+                    <div class="pull-right">
+                        <i class="fa fa-lg fa-comment"></i>
+                    </div>
+                </h4>
+            </div>
+        }
     </div>
 }
 else
 {
     <div class="alert alert-danger">
-        <h4>
-            <strong>Wrong answer - </strong>
-            <span>@XmlAnswer.Answer</span>
-        </h4>
-        <h4>
-            <strong>Comment: </strong>
-            @XmlQuestion.Comment
-        </h4>
+        <div class="form-inline">
+            <h4>
+                @XmlAnswer.Answer
+                <div class="pull-right">
+                    <i class="fa fa-lg fa-thumbs-down"></i>
+                </div>
+            </h4>
+        </div>
+        @if (!XmlQuestion.Comment.IsNullOrEmptry())
+        {
+            <div class="form-inline">
+                <h4>
+                    @XmlQuestion.Comment
+                    <div class="pull-right">
+                        <i class="fa fa-lg fa-comment"></i>
+                    </div>
+                </h4>
+            </div>
+        }
     </div>
 }
 

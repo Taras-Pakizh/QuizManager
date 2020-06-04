@@ -2,34 +2,45 @@
 @using QuizManager.DBModels;
 @using QuizManager.ModelViews;
 
-@model SectionView
+@model PerQuestionView
 
-@using (Ajax.BeginForm("TestSection", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm", name = "ajaxForm" }))
-{
-    int index = 0;
-    foreach (var item in Model.Tests)
+@{
+    var testSave = (TestSave)Session["save"];
+
+    IEnumerable<SelectListItem> questionList = null;
+
+    if (Model.Question.Quiz.Type != QuizType.Adaptive &&
+        Model.Question.Quiz.TimeLimitType != QuizTimeLimitType.QuestionLimited)
     {
-        if (index != 0)
+        questionList = testSave.QuestionOrders.Select(x => new SelectListItem()
         {
-            <hr class="questionhr" />
-        }
-
-        <div @*class="test"*@>
-            @{
-                item.Index = index;
-                ++index;
-            }
-            @Html.Partial(item.View, item)
-        </div>
+            Selected = Model.Question.Id == x,
+            Text = (testSave.QuestionOrders.IndexOf(x) + 1).ToString(),
+            Value = x.ToString()
+        }).ToList();
     }
+}
+
+
+@using (Ajax.BeginForm("TestQuestion", null, new AjaxOptions() { UpdateTargetId = "tests" }, new { id = "TestsForm", name = "ajaxForm" }))
+{
+    if (Model.Question.Quiz.Type != QuizType.Adaptive &&
+        Model.Question.Quiz.TimeLimitType != QuizTimeLimitType.QuestionLimited)
+    {
+        @RenderHelper.QuestionTable(questionList, "btnSubmit")
+    }
+
+    <br />
+
+    <div>
+        @Html.Partial(Model.Test.View, Model.Test)
+    </div>
 
     <div class="text-center">
 
         <span id="navigation">
 
-            @Html.HiddenFor(x => x.QuizId)
-
-            @Html.HiddenFor(x => x.SectionId)
+            @Html.HiddenFor(x => x.Question.Id)
 
             @if (Model.PrevVisibility)
             {
@@ -64,12 +75,13 @@
 }
 
 
-@if (Model.Section.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited &&
-    Model.Section.TimeLimitType == SectionTimeLimitType.Limited)
+@if (Model.Question.Quiz.TimeLimitType == QuizTimeLimitType.QuestionLimited)
 {
     <script>
 
-        var totalSeconds = @Model.Section.TimeLimit.Value.TotalSeconds;
+        var totalSeconds = @Model.Question.TimeLimit.Value.TotalSeconds;
+
+        //var totalSeconds = 3000;
 
         function TimerValue() {
 
@@ -93,7 +105,7 @@
 
             submitButton.setAttribute('name', '');
 
-            $('#TestsForm').append('<input type="hidden" name="btnSubmit" value="SectionTime" />')
+            $('#TestsForm').append('<input type="hidden" name="btnSubmit" value="QuestionTime" />')
 
             submitButton.click();
         }

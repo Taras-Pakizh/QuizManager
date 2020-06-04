@@ -244,9 +244,16 @@ namespace QuizManager.Controllers
         public ActionResult JoinGroup(string link)
         {
             var reference = cx.GroupReferences.Find(link);
-
+            
             if(reference == null)
             {
+                return HttpNotFound();
+            }
+
+            if(reference.Deadline < DateTime.Now)
+            {
+                cx.GroupReferences.Remove(reference);
+                cx.SaveChanges();
                 return HttpNotFound();
             }
 

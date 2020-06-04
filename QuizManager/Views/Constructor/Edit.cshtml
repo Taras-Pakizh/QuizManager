@@ -59,9 +59,27 @@
 
         $(document).ready(function () {
 
+            function ClearOptions(select) {
+                var options = select.getElementsByTagName('option');
+                for (option of options) {
+                    option.disabled = false;
+                }
+            }
+
+            function SelectOption(select, selected) {
+                var options = select.getElementsByTagName('option');
+
+                for (option of options) {
+                    option.setAttribute('disabled', 'disabled');
+                    if (option.value == selected) {
+                        option.disabled = false;
+                    }
+                }
+            }
+
             function ChangeSelection() {
                 var enumList = document.getElementById('enum');
-
+                
                 var val = enumList.value;
 
                 var timelimit = document.getElementById('timelimit');
@@ -72,20 +90,20 @@
                     timelimit.disabled = false;
                     timelimit.required = false;
 
-                    testingtype.disabled = false;
+                    ClearOptions(testingtype);
                 }
                 else if (val == "SectionLimited") {
                     timelimit.setAttribute('disabled', 'disabled');
                     timelimit.setAttribute('required', 'required');
 
-                    testingtype.setAttribute('disabled', 'disabled');
+                    SelectOption(testingtype, "PerSection");
                     testingtype.value = "PerSection";
                 }
                 else if (val == "QuestionLimited") {
                     timelimit.setAttribute('disabled', 'disabled');
                     timelimit.setAttribute('required', 'required');
 
-                    testingtype.setAttribute('disabled', 'disabled');
+                    SelectOption(testingtype, "PerQuestion");
                     testingtype.value = "PerQuestion";
                 }
                 else {
@@ -93,7 +111,7 @@
                     timelimit.setAttribute('disabled', 'disabled');
                     timelimit.setAttribute('required', 'required');
 
-                    testingtype.disabled = false;
+                    ClearOptions(testingtype);
                 }
             }
 

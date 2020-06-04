@@ -21,7 +21,11 @@
     <div class="pull-right myhmargin">
         <h4>Quiz: <strong>@Model.Quiz.Name</strong></h4>
         <h4>Type: <strong>@Model.Quiz.Type</strong></h4>
-        <h4>Time limit: <strong>@Model.Quiz.TimeLimit</strong></h4>
+        <h4>Testing type: <strong>@Model.Quiz.TestingType</strong></h4>
+        @if (Model.Quiz.TimeLimit != null)
+        {
+            <h4>Time limit: <strong>@Model.Quiz.TimeLimit</strong></h4>
+        }
         <h4>Time of finishing attempt: <strong>@Model.Attempt.Time</strong></h4>
         <h4>Mark: <strong>@Model.Attempt.Mark / @Model.Quiz.Value</strong></h4>
     </div>
@@ -52,10 +56,17 @@
             <li class="list-group-item section">
 
                 <div class="well mywell">
-                    <h4>Section name:<strong>@Section.Section.Name</strong></h4>
-                    @if (Section.Section.TimeLimitType == SectionTimeLimitType.Limited)
+                    <h4>Section name: <strong>@Section.Section.Name</strong></h4>
+                    @if (Section.Section.TimeLimitType == SectionTimeLimitType.Limited &&
+                        Section.Section.TimeLimit != null)
                     {
-                        <h4>Time limit:<strong>@Section.Section.TimeLimit</strong></h4>
+                        <h4>Time limit: <strong>@Section.Section.TimeLimit</strong></h4>
+                    }
+                    <h4>Question count: <strong>@Section.Section.QuestionCount</strong></h4>
+                    @if(Model.Quiz.Type == QuizType.Adaptive 
+                        && Model.Quiz.TestingType == QuizTestingType.PerSection)
+                    {
+                        <h4>Difficulty: <strong>@Section.Section.Difficulty</strong></h4>
                     }
                 </div>
 

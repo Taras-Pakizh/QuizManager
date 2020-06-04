@@ -50,7 +50,7 @@ namespace QuizManager.Logic
         }
 
 
-        public double ExamineQuiz(Quiz quiz, IEnumerable<Answer> answers)
+        public double ExamineQuiz(Quiz quiz, IEnumerable<Answer> answers, TestSave save)
         {
             var scoredPoints = answers.Sum(x => x.Mark);
 
@@ -58,19 +58,67 @@ namespace QuizManager.Logic
 
             if(quiz.Type == QuizType.Adaptive)
             {
-                maxPoints = answers.Select(x =>
+                if(quiz.TestingType == QuizTestingType.PerQuestion)
                 {
-                    var section = x.Question.Section;
+                    var coefDif = answers.Select(x => new
+                    {
+                        Coef = x.Mark / x.Question.Value,
+                        Difficulty = x.Question.Difficulty
+                    }).ToList().Where(y => y.Coef >= 0.5).ToList();
 
-                    return x.Question.Value * section.Difficulty;
-                }).Sum();
+                    if(coefDif.Count == 0)
+                    {
+                        return 0;
+                    }
+
+                    return (double)coefDif.Max(x => x.Difficulty);
+                }
+                else if(quiz.TestingType == QuizTestingType.PerSection)
+                {
+                    var result = 0;
+
+                    foreach(var item in save.Saves)
+                    {
+                        var section = cx.Sections.Find(item.Key);
+
+                        var questions = item.Value.Answers.
+                            Select(x => cx.Questions.Find(x.Key)).
+                            ToList();
+
+                        var ids = questions.Select(x => x.Id).ToList();
+
+                        var sectionAnswers = answers.
+                            Where(x => ids.Contains(x.Question.Id)).ToList();
+
+                        maxPoints = questions.Sum(x => x.Value);
+
+                        scoredPoints = sectionAnswers.Sum(x => x.Mark);
+
+                        var coef = scoredPoints / maxPoints;
+
+                        if(coef >= 0.5 && result < section.Difficulty)
+                        {
+                            result = section.Difficulty;
+                        }
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    throw new Exception("You added some enum");
+                }
+            }
+            else if(quiz.Type == QuizType.Test)
+            {
+                maxPoints = answers.Select(x => x.Question.Value).Sum();
+
+                return Math.Round(quiz.Value * (scoredPoints / maxPoints), 2);
             }
             else
             {
-                maxPoints = answers.Select(x => x.Question.Value).Sum();
+                throw new Exception("You added some enum");
             }
-
-            return Math.Round(quiz.Value * (scoredPoints / maxPoints), 2);
         }
 
         public Answer ExamineQuestion(Question question, XmlBase xmlAnswer)
@@ -83,24 +131,9 @@ namespace QuizManager.Logic
 
             XmlBase questionXml = XmlBase.Deserialize(question.XmlObject, question.TypeName);
 
-            double mark = 0;
-
             if (((IParseAnswer)xmlAnswer).IsValid())
             {
-                mark = ((IXmlTask)questionXml).Compare(xmlAnswer, question.Value);
-            }
-
-            var quiz = question.Quiz;
-
-            if(quiz.Type == QuizType.Adaptive)
-            {
-                var section = question.Section;
-
-                answer.Mark = mark * section.Difficulty;
-            }
-            else
-            {
-                answer.Mark = mark;
+                answer.Mark = ((IXmlTask)questionXml).Compare(xmlAnswer, question.Value);
             }
 
             answer.TypeName = ((IAnswerName)questionXml).GetTypeName();
@@ -144,9 +177,9 @@ namespace QuizManager.Logic
                 answers.Add(answer);
             }
 
-            double maxPoints = answers.Sum(x => x.Question.Value) * prevSection.Difficulty;
+            double maxPoints = answers.Sum(x => x.Question.Value);
 
-            double scoredPoints = answers.Sum(x => x.Mark) * prevSection.Difficulty;
+            double scoredPoints = answers.Sum(x => x.Mark);
 
             var coef = scoredPoints / maxPoints;
 
@@ -203,6 +236,8 @@ namespace QuizManager.Logic
             return question;
         }
 
+        private readonly int _DifficultyDelta = 2;
+
         /// <summary>
         /// Returns null if end
         /// </summary>
@@ -217,6 +252,10 @@ namespace QuizManager.Logic
 
             if(coef >= 0.75)
             {
+                if (passedSections.Any(x => x.Difficulty > prevSection.Difficulty + _DifficultyDelta))
+                {
+                    return null;
+                }
                 return availableSections.FirstOrDefault(x => x.Difficulty > prevSection.Difficulty);
             }
             else if(coef >= 0.5)
@@ -225,7 +264,6 @@ namespace QuizManager.Logic
                 {
                     return null;
                 }
-
                 return availableSections.FirstOrDefault(x => x.Difficulty > prevSection.Difficulty);
             }
             else if(coef >= 0.25)
@@ -234,11 +272,14 @@ namespace QuizManager.Logic
                 {
                     return null;
                 }
-
                 return availableSections.LastOrDefault(x => x.Difficulty < prevSection.Difficulty);
             }
             else
             {
+                if (passedSections.Any(x => x.Difficulty < prevSection.Difficulty + _DifficultyDelta))
+                {
+                    return null;
+                }
                 return availableSections.LastOrDefault(x => x.Difficulty < prevSection.Difficulty);
             }
         }
@@ -255,6 +296,10 @@ namespace QuizManager.Logic
 
             if (coef >= 0.75)
             {
+                if (passedQuestions.Any(x => x.Difficulty > prevQuestion.Difficulty + _DifficultyDelta))
+                {
+                    return null;
+                }
                 return availableQuestions.FirstOrDefault(x => x.Difficulty > prevQuestion.Difficulty);
             }
             else if (coef >= 0.5)
@@ -263,7 +308,6 @@ namespace QuizManager.Logic
                 {
                     return null;
                 }
-
                 return availableQuestions.FirstOrDefault(x => x.Difficulty > prevQuestion.Difficulty);
             }
             else if (coef >= 0.25)
@@ -272,11 +316,14 @@ namespace QuizManager.Logic
                 {
                     return null;
                 }
-
                 return availableQuestions.LastOrDefault(x => x.Difficulty < prevQuestion.Difficulty);
             }
             else
             {
+                if (passedQuestions.Any(x => x.Difficulty < prevQuestion.Difficulty + _DifficultyDelta))
+                {
+                    return null;
+                }
                 return availableQuestions.LastOrDefault(x => x.Difficulty < prevQuestion.Difficulty);
             }
         }
@@ -368,9 +415,9 @@ namespace QuizManager.Logic
                     nextOrder++;
                 }
             }
-            else if(Int32.TryParse(btnSubmit, out int questionId))
+            else if(Int32.TryParse(btnSubmit, out int questionOrder))
             {
-                nextOrder = testSave.QuestionOrders.IndexOf(questionId);
+                nextOrder = questionOrder - 1;
             }
             
             if (quiz.Type == QuizType.Adaptive)

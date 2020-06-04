@@ -53,7 +53,7 @@ namespace QuizManager.Controllers
                 },
                 new SquereData()
                 {
-                    Name = "Statistic",
+                    Name = "View attempts",
                     Link = Url.Action("QuizInfo", "Cabinet")
                 }
             };
@@ -367,7 +367,10 @@ namespace QuizManager.Controllers
                     sectionAttemp.Tests.Add(testAttemp);
                 }
 
-                model.Sections.Add(sectionAttemp);
+                if(sectionAttemp.Tests.Count != 0)
+                {
+                    model.Sections.Add(sectionAttemp);
+                }
             }
 
             return View(model);

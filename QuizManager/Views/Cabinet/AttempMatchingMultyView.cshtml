@@ -15,8 +15,17 @@
 
 <div class="well questionwell">
 
-    <h4>Question:<strong>@Model.Question.Text</strong></h4>
-    <h4>Mark:<strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
+    <h4>Question: <strong>@Model.Question.Text</strong></h4>
+    @if (Model.Question.Quiz.Type == QuizType.Adaptive &&
+        Model.Question.Quiz.TestingType == QuizTestingType.PerQuestion)
+    {
+        <h4>Difficulty: <strong>@Model.Question.Difficulty</strong></h4>
+    }
+    @if (Model.Question.Quiz.TimeLimitType == QuizTimeLimitType.QuestionLimited)
+    {
+        <h4>Time limit: <strong>@Model.Question.TimeLimit</strong></h4>
+    }
+    <h4>Mark: <strong>@Math.Round(Model.Answer.Mark, 2) / @Model.Question.Value</strong></h4>
 
 </div>
 
@@ -40,10 +49,17 @@
             <tr>
                 <td>
                     <h4>@row.Text</h4>
-                    <h4>
-                        <strong>Comment:</strong>
-                        <span>@row.Comment</span>
-                    </h4>
+                    @if (!row.Comment.IsNullOrEmptry())
+                    {
+                        <div class="form-inline">
+                            <h4>
+                                @row.Comment
+                                <div class="pull-right">
+                                    <i class="fa fa-lg fa-comment"></i>
+                                </div>
+                            </h4>
+                        </div>
+                    }
                 </td>
                 @foreach (var col in XmlQuestion.Columns)
                 {

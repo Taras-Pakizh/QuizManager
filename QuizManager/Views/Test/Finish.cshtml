@@ -2,6 +2,17 @@
 @using QuizManager.ModelViews;
 @model FinishView
 
+@{ 
+    if(Model.Quiz.TimeLimitType == QuizTimeLimitType.QuestionLimited ||
+        Model.Quiz.TimeLimitType == QuizTimeLimitType.SectionLimited)
+    {
+        <script>
+            clearInterval(_tick);
+            document.getElementById('timer').innerText = "";
+        </script>
+    }
+}
+
 <ul class="list-group">
 
     @foreach (var item in Model.SectionAnswers)
@@ -61,13 +72,14 @@
         <div class="text-center">
             <span>
 
-                @if (Model.Quiz.Type != QuizType.Adaptive &&
-                    Model.Quiz.TimeLimitType != QuizTimeLimitType.SectionLimited)
+                @if (Model.Quiz.Type == QuizType.Test &&
+                     (Model.Quiz.TimeLimitType == QuizTimeLimitType.Limited || 
+                     Model.Quiz.TimeLimitType == QuizTimeLimitType.NonLimited ))
                 {
-                    <input type="submit" class="btn btn-info mycolor" value="Back" />
+                    <input type="submit" class="btn btn-info questionwell" value="Back" />
                 }
 
-                @RenderHelper.ActionWithParameter(Url.Action("SaveAttemp", "Test"), Model.Quiz.Id.ToString(), "Finish", "")
+                @RenderHelper.ActionWithParameterFinish(Url.Action("SaveAttemp", "Test"), Model.Quiz.Id.ToString(), "Finish", "")
 
             </span>
         </div>

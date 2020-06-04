@@ -25,9 +25,18 @@
         Columns = mModel.Columns.Shuffle();
     }
 
-    var qPath = "SectionData[" + Model.Index + "].QuestionId";
-
-    var nPath = "SectionData[" + Model.Index + "].Answers";
+    var qPath = "";
+    var nPath = "";
+    if(Model.Quiz.TestingType == QuizTestingType.PerSection)
+    {
+        qPath = "SectionData[" + Model.Index + "].QuestionId";
+        nPath = "SectionData[" + Model.Index + "].Answers";    
+    }
+    else if(Model.Quiz.TestingType == QuizTestingType.PerQuestion)
+    {
+        qPath = "QuestionData.QuestionId";
+        nPath = "QuestionData.Answers";
+    }
 }
 
 @Html.Hidden(qPath, Model.Question.Id)

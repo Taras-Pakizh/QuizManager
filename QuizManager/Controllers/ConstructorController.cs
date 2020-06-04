@@ -284,7 +284,7 @@ namespace QuizManager.Controllers
             quiz.Type = view.Type;
             quiz.TestingType = view.TestingType;
             quiz.TimeLimitType = view.TimeLimitType;
-
+            
             cx.SaveChanges();
 
             return RedirectToAction("Sections", new { id = view.Id });
@@ -441,6 +441,8 @@ namespace QuizManager.Controllers
             }
 
             question.Type = view.Question.Type;
+            question.Difficulty = view.Question.Difficulty;
+            question.TimeLimit = view.Question.TimeLimit;
 
             question.XmlValue = null;
             question.TypeName = null;

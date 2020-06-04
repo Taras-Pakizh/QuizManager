@@ -22,7 +22,7 @@
 
     <div class="form-inline myhmargin form-group">
 
-        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark" })
+        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark", data_toggle="tooltip", data_placement="right", title="Max mark for question" })
 
         @RenderHelper.AddOptionButton("addLink")
 
@@ -46,14 +46,15 @@
 
                     @Html.HiddenFor(x => x._XmlModel.Options[i].Id)
 
-                    <div class="form-inline">
+                    <div class="row myhmargin">
 
-                        <div class="form-group">
+                        <div class="form-group pull-left my80">
                             @Html.TextBoxFor(x => x._XmlModel.Options[i].Text, new { @class = "form-control" })
                         </div>
-
-                        @RenderHelper.RemoveOptionButton("removeLink")
-
+                        <div class="pull-right">
+                            @RenderHelper.RemoveOptionButton("removeLink")
+                        </div>
+                        
                     </div>
 
                     <br />

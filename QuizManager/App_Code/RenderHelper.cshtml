@@ -109,6 +109,17 @@
     </a>
 }
 
+@helper ActionWithParameterFinish(string url, string id, string text, string _class)
+{
+    {
+        url = url + "?id=" + id;
+    }
+
+    <a href="@url" type="button" class="btn btn-info questionwell @_class">
+        @text
+    </a>
+}
+
 @helper GroupSubmits(IEnumerable<int> orderNumbers)
 {
     <div id="qGroup">
@@ -116,6 +127,25 @@
         @foreach (var item in orderNumbers)
         {
             <input name="value" type="submit" value="@item" class="btn btn-default btn-squared-small question choose" />
+        }
+
+    </div>
+}
+
+@helper QuestionTable(IEnumerable<System.Web.Mvc.SelectListItem> selectList, string name)
+{
+    <div class="row form-inline myhmargin">
+
+        @foreach (var item in selectList)
+        {
+            if (item.Selected)
+            {
+                <input name="@name" type="submit" value="@item.Text" class="btn btn-info btn-squared-small mycolor" />
+            }
+            else
+            {
+                <input name="@name" type="submit" value="@item.Text" class="btn btn-default btn-squared-small" />
+            }
         }
 
     </div>
@@ -148,34 +178,45 @@
 @helper CreateSquere(string QuizName, int Id,
     IEnumerable<string> Names, IEnumerable<string> Links)
 {
-    <div class="dropdown">
-
-        <button data-toggle="dropdown"
-                class="dropdown-toggle btn-squared-default-plain:hover btn-squared-default">
+    <div data-toggle="tooltip" data-placement="right"
+         title="@QuizName">
+        <button data-toggle="modal" data-target="#@Id"
+                class="btn-squared-default-plain:hover btn-squared-default">
             <p class="module">
                 @QuizName
             </p>
         </button>
 
-        <ul class="dropdown-menu">
+        <div class="modal fade" id="@Id" role="dialog">
+            <div class="modal-dialog">
 
-            @foreach (var item in Names.Zip(Links, (name, link) =>
-                new
-                {
-                    Name = name,
-                    Link = link
-                }
-            ))
-            {
-                var href = item.Link + "?id=" + Id;
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4><strong>Choose action</strong></h4>
+                    </div>
+                    <div class="modal-body list-group">
+                        @foreach (var item in Names.Zip(Links, (name, link) =>
+                                new
+                                {
+                                    Name = name,
+                                    Link = link
+                                }
+                            ))
+                        {
+                            var href = item.Link + "?id=" + Id;
 
-                <li>
-                    <a href="@href">@item.Name</a>
-                </li>
-            }
+                            <a class="list-group-item" href="@href">
+                                <h4>@item.Name</h4>
+                            </a>
+                        }
+                    </div>
+                </div>
 
-        </ul>
+            </div>
+        </div>
 
     </div>
+
 }
 

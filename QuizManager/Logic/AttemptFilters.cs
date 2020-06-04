@@ -96,7 +96,25 @@ namespace QuizManager.Logic
 
         public AttemptFilterView Filter(QuizContext cx, ApplicationUser user)
         {
-            var filteringData = cx.QuizAttempts.ToList().Where(x => _Filter(x)).ToList();
+            var users = new HashSet<ApplicationUser>();
+            foreach (var group in cx.Groups.Where(x => x.Creator.Id == user.Id).ToList())
+            {
+                foreach (var applicationUser in group.ApplicationUsers)
+                {
+                    users.Add(applicationUser);
+                }
+            }
+
+            var userIds = users.Select(x => x.Id).ToList();
+
+            var filteringData = cx.QuizAttempts.
+                Where(x => x.User.Id == user.Id ||
+                userIds.Contains(user.Id) || 
+                x.Quiz.User.Id == user.Id).ToList();
+
+            filteringData = filteringData.
+                Where(x => _Filter(x)).
+                ToList();
 
             int pagesCount = 0;
 
@@ -118,16 +136,6 @@ namespace QuizManager.Logic
 
             var data = filteringData.GetRange((Page - 1) * PageSize, 
                 Page == pagesCount ? lastPagePushSize : PageSize);
-
-            var users = new HashSet<ApplicationUser>();
-
-            foreach(var group in cx.Groups.Where(x=>x.Creator.Id == user.Id).ToList())
-            {
-                foreach(var applicationUser in group.ApplicationUsers)
-                {
-                    users.Add(applicationUser);
-                }
-            }
 
             var result = new AttemptFilterView()
             {

@@ -38,7 +38,7 @@
 
     <div class="form-inline form-group myhmargin">
 
-        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark" })
+        @Html.TextBoxFor(x => x.Question.Value, new { @class = "form-control", type = "number", min = "1", placeholder="Max mark", data_toggle="tooltip", data_placement="right", title="Max mark for question" })
 
         @RenderHelper.AddOptionButton("addLink")
 

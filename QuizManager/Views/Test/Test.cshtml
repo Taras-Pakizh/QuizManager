@@ -18,7 +18,7 @@
     <div class="pull-right myhmargin">
         <h4><strong id="timer"></strong></h4>
 
-        <h4><strong>Don't refrash</strong></h4>
+        <h4><strong>Don't refresh</strong></h4>
     </div>
 
 </div>
@@ -28,7 +28,14 @@
     @if ((int)Session["page"] == 0)
     {
         //means first load
-        @Html.Partial("TestSection", ViewBag.Section as SectionView)
+        if (Model.TestingType == QuizTestingType.PerSection)
+        {
+            @Html.Partial("TestSection", ViewBag.Section as SectionView)
+        }
+        else if(Model.TestingType == QuizTestingType.PerQuestion)
+        {
+            @Html.Partial("TestQuestion", ViewBag.Question as PerQuestionView)
+        }
     }
 
 </div>

@@ -61,7 +61,7 @@
             {
                 <div class="form-group">
                     @Html.Label("Difficulty:")
-                    @Html.TextBoxFor(x => x.NewSection.Difficulty, new { @class = "form-control", type = "number", min = "0" })
+                    @Html.TextBoxFor(x => x.NewSection.Difficulty, new { @class = "form-control", data_toggle="tooltip", data_placement="right", title = "Max difficulty is the highest mark for quiz", type = "number", min = "1", max = Model.Quiz.Value.ToString() })
                 </div>
             }
 

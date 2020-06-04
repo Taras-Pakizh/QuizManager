@@ -56,14 +56,15 @@
 
                 <div class="form-group myvmargin">
                     @Html.LabelFor(x => x.Question.OrderNumber, "Order:")
-                    @Html.TextBoxFor(x => x.Question.OrderNumber, new { type = "number", @class = "form-control", min = "1" })
+                    @Html.TextBoxFor(x => x.Question.OrderNumber, new { type = "number", @class = "form-control", min = "1", data_toggle="tooltip", data_placement="right", title="Order of question in section"})
                 </div>
 
                 if (Model.Quiz.Type == QuizType.Adaptive &&
                     Model.Quiz.TestingType == QuizTestingType.PerQuestion)
                 {
                     <div class="form-group myvmargin">
-                        @Html.TextBoxFor(x => x.Question.Difficulty, new { type = "number", @class = "form-control", min = "1", placeholder = "Difficulty", required = "required" })
+                        @Html.TextBoxFor(x => x.Question.Difficulty, 
+                            new { type = "number", data_toggle="tooltip", data_placement="right", title = "Max difficulty is the highest mark for quiz",  @class = "form-control", min = "1", max = Model.Quiz.Value.ToString(), placeholder = "Difficulty", required = "required" })
                     </div>
                 }
 

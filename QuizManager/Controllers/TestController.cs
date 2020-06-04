@@ -37,7 +37,7 @@ namespace QuizManager.Controllers
 
             if((result.Type == ReferenceType.Limited && 
                 result.AttemptCount <= 0) ||
-                result.Deadline > DateTime.Now)
+                result.Deadline < DateTime.Now)
             {
                 cx.QuizReferences.Remove(result);
 
@@ -130,44 +130,18 @@ namespace QuizManager.Controllers
                 Session["page"] = 0;
             }
 
-            SectionView model = null;
+            var starter = new TestStarter(quiz, cx, helper);
 
-            Section section = null;
+            Session["save"] = starter.SessionSave;
 
-            if(quiz.Type == QuizType.Adaptive)
+            if(quiz.TestingType == QuizTestingType.PerSection)
             {
-                section = helper.GetSection_Adaptive(quiz, null, null, out bool isFinish, true);
-
-                var questions = helper.GetRandomSectionQuestions(section.Id);
-
-                var testViews = helper.CreateTestViews(questions, quiz);
-
-                model = new SectionView()
-                {
-                    QuizId = quiz.Id,
-                    SectionId = section.Id,
-                    Tests = testViews,
-                    Section = section
-                };
-
-                Session["save"] = new TestSave(cx);
+                ViewBag.Section = starter.PerSectionModel;
             }
-            else
+            else if(quiz.TestingType == QuizTestingType.PerQuestion)
             {
-                section = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).
-                    OrderBy(y => y.Order).
-                    First();
-
-                var testSave = helper.CreateWholeTest(quiz);
-
-                Session["save"] = testSave;
-
-                model = testSave.Saves[section.Id].View;
+                ViewBag.Question = starter.PerQuestionModel;
             }
-
-            model = helper.SetNavigation(model, section, quiz);
-
-            ViewBag.Section = model;
 
             return View(quiz);
         }
@@ -332,7 +306,7 @@ namespace QuizManager.Controllers
                     {
                         sectionAnswers.QuestionIndex_IsInit.Add(
                             index,
-                            ((IParseAnswer)questionAnswer.Value).IsValid()
+                            ((IParseAnswer)questionAnswer.Value.Answer).IsValid()
                         );
                         index++;
                     }
@@ -378,7 +352,7 @@ namespace QuizManager.Controllers
 
             ModelState.Clear();
 
-            return PartialView("TestSection", model);
+            return PartialView("TestQuestion", model);
         }
 
         [HttpPost]
@@ -396,28 +370,42 @@ namespace QuizManager.Controllers
 
             var quiz = cx.Quizzes.Find(view.Quiz.Id);
 
-            var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).OrderBy(y => y.Order).ToList();
-
-            var lastSection = sections.Last();
-
-            var model = testSave.Saves[lastSection.Id].View;
-
-            model.IsFinish = true;
-
-            if(lastSection.Order != 1)
+            if(quiz.TestingType == QuizTestingType.PerSection)
             {
-                model.PrevVisibility = true;
-            }
-            
-            ModelState.Clear();
+                var sections = cx.Sections.Where(x => x.Quiz.Id == quiz.Id).OrderBy(y => y.Order).ToList();
+                var lastSection = sections.Last();
+                var model = testSave.Saves[lastSection.Id].View;
 
-            return PartialView("TestSection", model);
+                model.IsFinish = true;
+                if (lastSection.Order != 1)
+                {
+                    model.PrevVisibility = true;
+                }
+
+                ModelState.Clear();
+                return PartialView("TestSection", model);
+            }
+            else if(quiz.TestingType == QuizTestingType.PerQuestion)
+            {
+                var lastQuestionId = testSave.QuestionOrders.Last();
+                var model = testSave.QuestionSaves[lastQuestionId].View;
+
+                model.IsFinish = true;
+                if(testSave.QuestionOrders.Count != 1)
+                {
+                    model.PrevVisibility = true;
+                }
+
+                ModelState.Clear();
+                return PartialView("TestQuestion", model);
+            }
+
+            return HttpNotFound();
         }
 
         /// <summary>
         /// Saving results is in Session files
         /// This action is calculating and saving to database result of quiz
-        /// Just for TestQuiz!!!!!!! (Poll sucks)
         /// </summary>
         [HttpGet]
         public ActionResult SaveAttemp(int? id)
@@ -441,31 +429,9 @@ namespace QuizManager.Controllers
                 attemp.Group = cx.Groups.Find((int)Session["GroupId"]);
             }
 
-            var answers = new List<Answer>();
+            var saver = new AttemptSaver(testSave, cx, attemp, helper);
 
-            foreach(var sectionSave in testSave.Saves)
-            {
-                foreach(var questionIdAnswers in sectionSave.Value.Answers)
-                {
-                    var answer = helper.ExamineQuestion(
-                        cx.Questions.Find(questionIdAnswers.Key), questionIdAnswers.Value);
-
-                    answers.Add(answer);
-                }
-            }
-
-            attemp.Mark = helper.ExamineQuiz(quiz, answers);
-
-            cx.QuizAttempts.Add(attemp);
-
-            foreach(var item in answers)
-            {
-                item.Attempt = attemp;
-            }
-
-            cx.Answers.AddRange(answers);
-
-            cx.SaveChanges();
+            attemp = saver.Attempt;
 
             return RedirectToAction("GetAttepmt", "Cabinet", new { id = attemp.Id });
         }
