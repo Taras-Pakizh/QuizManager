@@ -75,6 +75,18 @@ namespace QuizManager.Logic
             return false;
         };
 
+        public bool? IsOnlyMine { get; set; }
+        private Func<QuizAttempt, bool?, ApplicationUser, bool> _IsOnlyMine = (attemp, isMine, user) =>
+        {
+            if(isMine == true)
+            {
+                if (attemp.User.Id == user.Id)
+                    return true;
+                return false;
+            }
+            return true;
+        };
+
         public int Page { get; set; }
 
         public readonly static int PageSize = 10;
@@ -87,15 +99,20 @@ namespace QuizManager.Logic
                     _MaxLimitFilter(attempt, MaxLimit) &&
                     _GroupFilter(attempt, Group) &&
                     _MinMarkFilter(attempt, MinMark) &&
-                    _MaxMarkFilter(attempt, MaxMark))
+                    _MaxMarkFilter(attempt, MaxMark) &&
+                    _IsOnlyMine(attempt, IsOnlyMine, CurrentUser))
             {
                 return true;
             }
             return false;
         }
 
+        public ApplicationUser CurrentUser { get; set; }
+
         public AttemptFilterView Filter(QuizContext cx, ApplicationUser user)
         {
+            CurrentUser = user;
+
             var users = new HashSet<ApplicationUser>();
             foreach (var group in cx.Groups.Where(x => x.Creator.Id == user.Id).ToList())
             {
@@ -120,13 +137,18 @@ namespace QuizManager.Logic
 
             int lastPagePushSize = filteringData.Count % PageSize;
 
+            //last has all size OR Count == 0 
             if (lastPagePushSize == 0)
             {
                 pagesCount = filteringData.Count / PageSize;
-                lastPagePushSize = PageSize;
+                //Count == 0
                 if(pagesCount == 0)
                 {
                     pagesCount = 1;
+                }
+                else
+                {
+                    lastPagePushSize = PageSize;
                 }
             }
             else
@@ -134,15 +156,30 @@ namespace QuizManager.Logic
                 pagesCount = filteringData.Count / PageSize + 1;
             }
 
+            if(Page > pagesCount)
+            {
+                //bag
+                Page = 1;
+            }
+
             var data = filteringData.GetRange((Page - 1) * PageSize, 
                 Page == pagesCount ? lastPagePushSize : PageSize);
+
+            //quizzes - my + which i passed
+            var attempts = cx.QuizAttempts.Where(x => x.User.Id == CurrentUser.Id).ToList();
+            var quizIds = attempts.Select(x => x.Quiz.Id).ToList();
+
+            //groups - my + opened!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            var openedIds = user.Groups.Select(x => x.Id).ToList();
 
             var result = new AttemptFilterView()
             {
                 Filters = this,
                 Data = data,
-                Quizzes = cx.Quizzes.Where(x=>x.User.Id == user.Id).ToList(),
-                Groups = cx.Groups.Where(x=>x.Creator.Id == user.Id).ToList(),
+                Quizzes = cx.Quizzes.Where(x=>x.User.Id == user.Id ||
+                        quizIds.Contains(x.Id)).ToList(),
+                Groups = cx.Groups.Where(x=>x.Creator.Id == user.Id || 
+                        openedIds.Contains(x.Id)),
                 Users = users,
                 PagesCount = pagesCount
             };

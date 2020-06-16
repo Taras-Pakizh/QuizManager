@@ -163,6 +163,18 @@
     }
 }
 
+@helper CheckBoxSimple_Id(string Name, bool IsChecked, string value, string id)
+{
+    if (IsChecked)
+    {
+        <input type="checkbox" name="@Name" value="@value" checked="checked" id="@id" />
+    }
+    else
+    {
+        <input type="checkbox" name="@Name" value="@value" id="@id" />
+    }
+}
+
 @helper CheckBoxSimpleDisabled(bool IsChecked)
 {
     if (IsChecked)

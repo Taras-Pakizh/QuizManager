@@ -251,18 +251,19 @@ namespace QuizManager.Controllers
                 Page = 1
             };
 
-            if(Session["filters"] != null)
+            var user = cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id);
+
+            if (Session["filters"] != null)
             {
-                filters = (AttemptFilters)Session["filters"];
+                var savedFilters = (AttemptFilters)Session["filters"];
+                if(savedFilters.CurrentUser == null ||
+                    savedFilters.CurrentUser.Id == user.Id)
+                {
+                    filters = savedFilters;
+                }
             }
 
-            Session["filters"] = null;
-
-            return View(
-                filters.Filter(
-                    cx, 
-                    cx.Users.Find(UserManager.FindByName(User.Identity.Name).Id)
-            ));
+            return View(filters.Filter(cx, user));
         }
 
         /// <summary>
@@ -271,8 +272,14 @@ namespace QuizManager.Controllers
         [HttpPost]
         public ActionResult FilterAttempts(AttemptFilterView view)
         {
-            if(view.Command == "Reset")
+            view.Filters.Quiz = cx.Quizzes.Find(view.Filters.Quiz?.Id);
+            view.Filters.Group = cx.Groups.Find(view.Filters.Group?.Id);
+            view.Filters.User = cx.Users.Find(view.Filters.User?.Id);
+
+            if (view.Command == "Reset")
             {
+                Session["filters"] = null;
+
                 return PartialView(new AttemptFilters()
                 {
                     Page = 1
@@ -302,14 +309,14 @@ namespace QuizManager.Controllers
                     throw new Exception("Navigation is initialized wrong");
                 }
             }
+            else
+            {
+                view.Filters.Page = 1;
+            }
 
-            view.Filters.Quiz = cx.Quizzes.Find(view.Filters.Quiz?.Id);
-            view.Filters.Group = cx.Groups.Find(view.Filters.Group?.Id);
-            view.Filters.User = cx.Users.Find(view.Filters.User?.Id);
+            Session["filters"] = view.Filters;
 
             //my attempts окрема (checkbox)
-
-            //to filter groups you need to storage reference(group or null) for attempt
 
             ModelState.Clear();
 
@@ -372,6 +379,8 @@ namespace QuizManager.Controllers
                     model.Sections.Add(sectionAttemp);
                 }
             }
+
+            ModelState.Clear();
 
             return View(model);
         }

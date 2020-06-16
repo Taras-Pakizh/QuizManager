@@ -39,7 +39,7 @@
 
         <div class="form-group">
             @Html.LabelFor(x => x.TimeLimit)
-            @Html.TextBoxFor(x => x.TimeLimit, new { type = "time", @class = "form-control", id = "timelimit" })
+            @Html.TextBoxFor(x => x.TimeLimit, new { type = "time", step = "1", @class = "form-control", id = "timelimit" })
         </div>
 
         <div class="form-group">

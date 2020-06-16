@@ -440,13 +440,21 @@ namespace QuizManager.Controllers
                 }
             }
 
-            question.Type = view.Question.Type;
             question.Difficulty = view.Question.Difficulty;
             question.TimeLimit = view.Question.TimeLimit;
+            
+            if (question.Type != null)
+            {
+                ViewBag.Change = true;
+            }
 
-            question.XmlValue = null;
-            question.TypeName = null;
-
+            if (view.Question.Type != question.Type)
+            {
+                question.Type = view.Question.Type;
+                question.XmlValue = null;
+                question.TypeName = null;
+            }
+            
             cx.SaveChanges();
 
             RedactorView model = null;
@@ -498,40 +506,6 @@ namespace QuizManager.Controllers
             ViewBag.IsSaved = true;
 
             return PartialView("Redactor", view);
-            /*
-            var question = cx.Questions.Find(view.Question.Id);
-
-            if (question == null)
-            {
-                return HttpNotFound();
-            }
-
-            question.Text = view.Question.Text;
-
-            question.Value = view.Question.Value;
-
-            question.TypeName = view._XmlModel.GetType().Name;
-
-            if (!XmlValidator.Validate(view._XmlModel))
-            {
-                ViewBag.Errors = XmlValidator.ErrorList;
-
-                view.Question = cx.Questions.Find(view.Question.Id);
-
-                return PartialView("Redactor", view);
-            }
-
-            question.XmlObject = XmlBase.Serialize(view._XmlModel);
-
-            cx.SaveChanges();
-
-            ViewBag.IsSaved = true;
-
-            view.Question = question;
-            view.Quiz = question.Quiz;
-            view.Section = question.Section;
-
-            return PartialView("Redactor", view);*/
         }
 
         [HttpPost]

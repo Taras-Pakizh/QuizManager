@@ -376,10 +376,13 @@ namespace QuizManager.Controllers
 
             cx.QuizAttempts.RemoveRange(attempts);
 
-            foreach (var user in group.ApplicationUsers)
+            foreach (var user in group.ApplicationUsers.ToList())
             {
                 group.ApplicationUsers.Remove(user);
             }
+
+            cx.GroupReferences.RemoveRange(
+                cx.GroupReferences.Where(x => x.Group.Id == group.Id).ToList());
 
             cx.Groups.Remove(group);
 

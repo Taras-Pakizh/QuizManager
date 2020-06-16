@@ -66,8 +66,17 @@
 
     </div>
 
+    <div class="pull-right">
+        @{ 
+            var count = Model.Group?.ApplicationUsers.Count;
+            if (count == null)
+            {
+                count = 0;
+            }
 
-
+        }
+        <h4><strong>Members: @count</strong></h4>
+    </div>
     <div class="btn-group-justified myhmargin">
         <div class="btn-group">
             <button type="button" class="btn btn-info mycolor" data-toggle="collapse" data-target="#users">
@@ -79,7 +88,24 @@
         @Html.Partial("TableWithModel", userView)
     </div>
 
-    <br />
+    <hr class="myhr" />
+
+    <div class="pull-right">
+        @{
+            var allowCount = Model?.Allowances.Count;
+            if (allowCount == null)
+            {
+                allowCount = 0;
+            }
+            var activeCount = Model?.Allowances.Count(x => x.Deadline > DateTime.Now);
+            if (activeCount == null)
+            {
+                activeCount = 0;
+            }
+        }
+        <h4><strong>Allowances: @allowCount</strong></h4>
+        <h4><strong>Active allowances: @activeCount</strong></h4>
+    </div>
 
     @using (Html.BeginForm("AddAllowance", "Group", FormMethod.Get))
     {
@@ -173,6 +199,9 @@
                 }
             </tbody>
         </table>
+
+        <hr class="myhr" />
+
     </div>
 
 

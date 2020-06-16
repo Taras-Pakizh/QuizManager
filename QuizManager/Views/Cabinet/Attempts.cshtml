@@ -32,3 +32,52 @@
     </div>
 
 </div>
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            function ClearOptions(select) {
+                var options = select.getElementsByTagName('option');
+                for (option of options) {
+                    option.disabled = false;
+                }
+            }
+
+            function SelectOption(select) {
+                var options = select.getElementsByTagName('option');
+
+                for (option of options) {
+                    option.setAttribute('disabled', 'disabled');
+                    if (option.innerHTML == "Your students") {
+                        option.disabled = false;
+                    }
+                }
+            }
+
+            function ChangeSelection() {
+                var box = document.getElementById('isMy');
+                var selectBox = document.getElementById('users');
+
+                if (box.checked) {
+                    SelectOption(selectBox);
+                }
+                else {
+                    selectBox.disabled = false;
+                    ClearOptions(selectBox);
+                }
+            }
+
+            ChangeSelection();
+
+            $(document).on('change', '#isMy', function () {
+
+                ChangeSelection();
+            });
+
+        });
+
+    </script>
+}

@@ -236,7 +236,7 @@ namespace QuizManager.Logic
             return question;
         }
 
-        private readonly int _DifficultyDelta = 2;
+        private readonly int _DifficultyDelta = 1;
 
         /// <summary>
         /// Returns null if end
@@ -276,7 +276,7 @@ namespace QuizManager.Logic
             }
             else
             {
-                if (passedSections.Any(x => x.Difficulty < prevSection.Difficulty + _DifficultyDelta))
+                if (passedSections.Any(x => x.Difficulty < prevSection.Difficulty - _DifficultyDelta))
                 {
                     return null;
                 }
@@ -320,7 +320,7 @@ namespace QuizManager.Logic
             }
             else
             {
-                if (passedQuestions.Any(x => x.Difficulty < prevQuestion.Difficulty + _DifficultyDelta))
+                if (passedQuestions.Any(x => x.Difficulty < prevQuestion.Difficulty - _DifficultyDelta))
                 {
                     return null;
                 }
